@@ -1,3 +1,5 @@
+![wifisting](native/resources/splash2.png)
+
 # wifisting
 
 A GTK4 wireless security toolkit for Linux. 57 modules covering Wi-Fi,
@@ -6,7 +8,7 @@ Bluetooth, RF, router-side and network MITM work behind one interface.
 Every module is a standalone shell script. The GUI is a view over them, not a
 container — nothing is locked behind the interface.
 
-![wifisting](native/resources/splash2.png)
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/40c72cfd-b8ae-47ae-9eb7-c4652d68fd9d" />
 
 > **Early development.** Tested thoroughly on one machine with one adapter.
 > The section [What actually works](#what-actually-works) is honest about what
