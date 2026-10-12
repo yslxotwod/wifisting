@@ -1,4 +1,5 @@
-![wifisting](native/resources/splash2.png)
+<img width="1774" height="887" alt="image" src="https://github.com/user-attachments/assets/9c8ccd38-0b57-4d18-a03e-ede7850902d8" />
+
 
 # wifisting
 
