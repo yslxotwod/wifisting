@@ -787,6 +787,15 @@ attack_cli_list_clients_tsv() {
     }
 
     RECON_CSV="$csv" TARGET_BSSID="$bssid" python3 - <<'PY'
+def _wf_tsv(x):
+    """Strip characters that break a TSV row.
+
+    An SSID is attacker-controlled: a network can call itself
+    "Foo<TAB>critical<TAB>OPEN" and forge an entire row in any consumer
+    that splits on tab. Tabs and line breaks become spaces so the field
+    keeps its shape and the forgery shows up as mangled text.
+    """
+    return str(x).replace("\t", " ").replace("\r", " ").replace("\n", " ")
 import csv, os, sys
 
 csv_path = os.environ["RECON_CSV"]

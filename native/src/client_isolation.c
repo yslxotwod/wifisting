@@ -10,7 +10,7 @@
 /*  showing a pass it cannot substantiate.                               */
 /* ==================================================================== */
 
-#define CLIENT_ISOLATION_SCRIPT PROJECT_DIR "/modules/54_client_isolation.sh"
+#define CLIENT_ISOLATION_SCRIPT wf_path("modules/54_client_isolation.sh")
 
 typedef struct {
     AppState    *state;

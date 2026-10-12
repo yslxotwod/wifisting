@@ -29,6 +29,45 @@ export LOG_DIR="$SCRIPT_DIR/logs"
 export CAPTURES_DIR="$SCRIPT_DIR/captures"
 export SESSION_LOG="${SESSION_LOG:-$LOG_DIR/session_$(date +%Y%m%d_%H%M%S)_$$.log}"
 
+# ---------------------------------------------------------------------
+#  Install the module icons into the user's hicolor theme on first run.
+#
+#  The GUI looks icons up by name through GtkIconTheme, so they have to
+#  be in a theme directory - they cannot be loaded from the project tree.
+#  That install used to be a manual step (tools/rename-icons.sh
+#  --install), which meant a fresh machine, a live USB, or anyone who
+#  unzipped the tarball got grey placeholder boxes instead of icons and
+#  no indication why.
+#
+#  Cheap to run: it copies only files that are missing, and the cache
+#  rebuild is skipped when nothing changed.
+# ---------------------------------------------------------------------
+ICON_SRC="$SCRIPT_DIR/native/resources/icons/symbolic"
+ICON_DST="$HOME/.local/share/icons/hicolor/scalable/actions"
+
+if [ -d "$ICON_SRC" ]; then
+    installed=0
+    mkdir -p "$ICON_DST" 2>/dev/null
+
+    for src in "$ICON_SRC"/wifisting-*.svg; do
+        [ -e "$src" ] || continue
+        name=$(basename "$src")
+
+        # A file already there may be newer than the tree - a local edit
+        # the user made. Only copy what is absent.
+        if [ ! -e "$ICON_DST/$name" ]; then
+            cp -f "$src" "$ICON_DST/$name" 2>/dev/null && installed=$((installed + 1))
+        fi
+    done
+
+    if [ "$installed" -gt 0 ]; then
+        echo "  installed $installed module icon(s) into the hicolor theme"
+        if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+            gtk-update-icon-cache -q -t -f "$HOME/.local/share/icons/hicolor" 2>/dev/null || true
+        fi
+    fi
+fi
+
 for d in "$TMP_DIR" "$LOOT_DIR" "$LOG_DIR" "$CAPTURES_DIR"; do
     if ! mkdir -p "$d"; then
         printf 'wifisting: cannot create %s\n' "$d" >&2

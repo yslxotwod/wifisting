@@ -1,6 +1,6 @@
 /* SSID-borne buffer overflow, with injection in the same payload.
    Registered as 55_ssid_overflow. */
-#define SSID_OVERFLOW_SCRIPT PROJECT_DIR "/modules/55_ssid_overflow.sh"
+#define SSID_OVERFLOW_SCRIPT wf_path("modules/55_ssid_overflow.sh")
 
 typedef struct {
     AppState    *state;

@@ -8,7 +8,7 @@
 /*  signal strength: severity, the finding, and why.                     */
 /* ==================================================================== */
 
-#define AUDIT_SCAN_SCRIPT PROJECT_DIR "/modules/46_public_wifi_audit.sh"
+#define AUDIT_SCAN_SCRIPT wf_path("modules/46_public_wifi_audit.sh")
 
 typedef struct {
     AppState    *state;

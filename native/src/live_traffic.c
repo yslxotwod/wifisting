@@ -640,11 +640,11 @@ live_start_pcap(LiveTrafficPage *p, const gchar *path)
 
     argv[i++] = "pkexec";
     argv[i++] = "env";
-    argv[i++] = "WIFISTING_ROOT=" PROJECT_DIR;
-    argv[i++] = "WIFISTING_STATE=" PROJECT_DIR "/state";
-    argv[i++] = "WIFISTING_HOME=" PROJECT_DIR;
+    argv[i++] = g_strconcat("WIFISTING_ROOT=", PROJECT_DIR, NULL);
+    argv[i++] = g_strconcat("WIFISTING_STATE=", wf_path("state"), NULL);
+    argv[i++] = g_strconcat("WIFISTING_HOME=", PROJECT_DIR, NULL);
     argv[i++] = "TMP_DIR=/tmp/wifisting";
-    argv[i++] = "HOME=" PROJECT_DIR;
+    argv[i++] = g_strconcat("HOME=", PROJECT_DIR, NULL);
     argv[i++] = LIVE_TRAFFIC_SCRIPT;
     argv[i++] = "--save-pcap";
     argv[i++] = p->iface;
@@ -701,11 +701,11 @@ live_start_stream(LiveTrafficPage *p)
 
     argv[i++] = "pkexec";
     argv[i++] = "env";
-    argv[i++] = "WIFISTING_ROOT=" PROJECT_DIR;
-    argv[i++] = "WIFISTING_STATE=" PROJECT_DIR "/state";
-    argv[i++] = "WIFISTING_HOME=" PROJECT_DIR;
+    argv[i++] = g_strconcat("WIFISTING_ROOT=", PROJECT_DIR, NULL);
+    argv[i++] = g_strconcat("WIFISTING_STATE=", wf_path("state"), NULL);
+    argv[i++] = g_strconcat("WIFISTING_HOME=", PROJECT_DIR, NULL);
     argv[i++] = "TMP_DIR=/tmp/wifisting";
-    argv[i++] = "HOME=" PROJECT_DIR;
+    argv[i++] = g_strconcat("HOME=", PROJECT_DIR, NULL);
     argv[i++] = LIVE_TRAFFIC_SCRIPT;
     argv[i++] = "--stream";
     argv[i++] = p->iface;
@@ -991,7 +991,7 @@ live_iface_dropdown_reload(LiveTrafficPage *p)
     g_autoptr(GError) error = NULL;
     g_autofree gchar *out = NULL;
     g_autofree gchar *err = NULL;
-    const gchar *argv[] = { PROJECT_DIR "/modules/28_live_traffic.sh",
+    const gchar *argv[] = { wf_path("modules/28_live_traffic.sh"),
                             "--list-ifaces-tsv", NULL };
     GSubprocess *proc;
     gboolean ok;
@@ -1522,7 +1522,7 @@ live_build_controls(LiveTrafficPage *p)
        verbatim, so "${WIFISTING_ROOT:-...}" appeared literal and looked
        broken. The stream sets WIFISTING_ROOT to PROJECT_DIR anyway. */
     gtk_entry_set_placeholder_text(GTK_ENTRY(p->entry_pcap),
-        PROJECT_DIR "/captures/live.pcap");
+        wf_path("captures/live.pcap"));
     gtk_widget_set_size_request(p->entry_pcap, 320, -1);
     gtk_widget_set_sensitive(p->entry_pcap, FALSE);
     gtk_widget_set_hexpand(p->entry_pcap, TRUE);
@@ -1744,7 +1744,7 @@ lt_cfg_filter_apply(GtkButton *b, gpointer ud)
     if (filter == NULL || *filter == '\0') return;
 
     argv[0] = "pkexec";
-    argv[1] = PROJECT_DIR "/modules/28_live_traffic.sh";
+    argv[1] = wf_path("modules/28_live_traffic.sh");
     argv[2] = "--set-filter";
     argv[3] = filter;
     argv[4] = NULL;
@@ -1760,7 +1760,7 @@ lt_cfg_filter_clear(GtkButton *b, gpointer ud)
 {
     GtkWidget *entry = ud;
     g_autoptr(GError) error = NULL;
-    const char *argv[] = { PROJECT_DIR "/modules/28_live_traffic.sh",
+    const char *argv[] = { wf_path("modules/28_live_traffic.sh"),
                             "--clear-filter", NULL };
     GSubprocess *proc;
 
@@ -1795,7 +1795,7 @@ lt_cfg_psk_confirm(GtkButton *b, gpointer ud)
     if (psk == NULL || *psk == '\0' || ssid == NULL || *ssid == '\0') return;
 
     argv[0] = "pkexec";
-    argv[1] = PROJECT_DIR "/modules/28_live_traffic.sh";
+    argv[1] = wf_path("modules/28_live_traffic.sh");
     argv[2] = "--set-psk";
     argv[3] = psk;
     argv[4] = ssid;
@@ -1883,7 +1883,7 @@ static void
 lt_cfg_psk_clear(GtkButton *b, gpointer ud)
 {
     g_autoptr(GError) error = NULL;
-    const char *argv[] = { PROJECT_DIR "/modules/28_live_traffic.sh",
+    const char *argv[] = { wf_path("modules/28_live_traffic.sh"),
                             "--clear-psk", NULL };
     GSubprocess *proc;
     (void) b; (void) ud;
@@ -1911,7 +1911,7 @@ lt_cfg_rotate(GtkButton *b, gpointer ud)
 
     if (rotating) {
         const char *argv[] = {
-            PROJECT_DIR "/modules/28_live_traffic.sh", "--rotate-stop", NULL
+            wf_path("modules/28_live_traffic.sh"), "--rotate-stop", NULL
         };
         g_object_set_data(G_OBJECT(btn), "rotating", NULL);
         gtk_button_set_label(GTK_BUTTON(btn), "Start rotation");
@@ -1924,7 +1924,7 @@ lt_cfg_rotate(GtkButton *b, gpointer ud)
             gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(spin)));
         const char *argv[] = {
             "pkexec",
-            PROJECT_DIR "/modules/28_live_traffic.sh", "--rotate-start",
+            wf_path("modules/28_live_traffic.sh"), "--rotate-start",
             "wlan0", /* TODO: pick from the iface list */
             interval,
             NULL

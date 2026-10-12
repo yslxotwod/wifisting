@@ -332,7 +332,30 @@ Adding a module:
 
 `check-verbs.sh` fails if a verb exists in a module but no GUI control can
 reach it. That is deliberate — a feature nobody can click is a feature nobody
-has. See `NEW_MODULE_CONVENTIONS.md`.
+has.
+
+**Conventions worth following.** These are not style preferences; each one
+exists because ignoring it caused a real bug.
+
+- **Sanitise untrusted text before putting it in a TSV row.** An SSID is
+  attacker-controlled: a network can call itself `Foo<TAB>critical<TAB>OPEN`
+  and forge a whole row in any consumer that splits on tab. Replace tabs,
+  carriage returns and newlines with spaces at the point of output.
+- **Never assert that state exists.** A selftest that requires a database, a
+  capture, or a previous run will fail for every new user while passing on the
+  machine that wrote it. Create your own fixture, or report `SKIP` — never a
+  pass against empty input.
+- **Fail loudly.** If a module cannot do its job, say so and exit non-zero.
+  Reporting success while the target is untouched is the worst outcome and the
+  one this project cares most about avoiding.
+- **Guard hardware with the reason.** If a module needs a radio that is not
+  present, name the radio. "No 802.15.4 radio found" is useful; an empty result
+  is not.
+- **Keep verbs reachable.** Every verb needs a GUI control that passes it as a
+  literal argument, or the check above will flag it.
+
+Run `./tools/diag.sh --collect` to see how your machine reports itself — it is
+also the report testers are asked to send with a bug.
 
 ---
 

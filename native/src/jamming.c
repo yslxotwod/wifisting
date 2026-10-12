@@ -1,5 +1,5 @@
 /* Frame-level jamming via the modwifi driver. Registered as 53_jamming. */
-#define JAMMING_SCRIPT PROJECT_DIR "/modules/53_jamming.sh"
+#define JAMMING_SCRIPT wf_path("modules/53_jamming.sh")
 
 typedef struct {
     AppState    *state;

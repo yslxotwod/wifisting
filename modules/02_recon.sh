@@ -234,6 +234,15 @@ recon_cli_targets_json_tsv() {
     [[ -s "$jf" ]] || { printf 'ERROR\tno recon state at %s\n' "$jf" >&2; return 1; }
     printf 'BSSID\tSSID\tCHANNEL\tPOWER\tPRIVACY\tCIPHER\n'
     python3 - "$jf" <<'PY'
+def _wf_tsv(x):
+    """Strip characters that break a TSV row.
+
+    An SSID is attacker-controlled: a network can call itself
+    "Foo<TAB>critical<TAB>OPEN" and forge an entire row in any consumer
+    that splits on tab. Tabs and line breaks become spaces so the field
+    keeps its shape and the forgery shows up as mangled text.
+    """
+    return str(x).replace("\t", " ").replace("\r", " ").replace("\n", " ")
 import json, sys
 try:
     d = json.load(open(sys.argv[1]))
@@ -258,6 +267,15 @@ recon_cli_list_targets_tsv() {
     local bssid_filter="${1:-${RECON_FILTER_BSSID:-}}"
 
     RECON_CSV="$csv" RECON_BSSID_FILTER="$bssid_filter" python3 - <<'PY'
+def _wf_tsv(x):
+    """Strip characters that break a TSV row.
+
+    An SSID is attacker-controlled: a network can call itself
+    "Foo<TAB>critical<TAB>OPEN" and forge an entire row in any consumer
+    that splits on tab. Tabs and line breaks become spaces so the field
+    keeps its shape and the forgery shows up as mangled text.
+    """
+    return str(x).replace("\t", " ").replace("\r", " ").replace("\n", " ")
 import csv, os
 p   = os.environ["RECON_CSV"]
 flt = os.environ.get("RECON_BSSID_FILTER", "").strip().lower()
@@ -351,6 +369,15 @@ recon_cli_wpa3_recon() {
     # stdout and this verb writes no file at all — no scratch, no loot.
     WPA3_PCAP="$pcap" WPA3_MAX_PACKETS="${WPA3_MAX_PACKETS:-200000}" \
     python3 - <<'PY'
+def _wf_tsv(x):
+    """Strip characters that break a TSV row.
+
+    An SSID is attacker-controlled: a network can call itself
+    "Foo<TAB>critical<TAB>OPEN" and forge an entire row in any consumer
+    that splits on tab. Tabs and line breaks become spaces so the field
+    keeps its shape and the forgery shows up as mangled text.
+    """
+    return str(x).replace("\t", " ").replace("\r", " ").replace("\n", " ")
 import os, sys
 from scapy.all import PcapReader, Dot11, Dot11Beacon, Dot11ProbeResp, Dot11Elt
 

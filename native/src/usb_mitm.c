@@ -89,7 +89,7 @@ usbmitm_iface_picked(UsbMitmPage *p)
 static void
 usbmitm_iface_reload(UsbMitmPage *p)
 {
-    const gchar *argv[] = { USB_MITM_SCRIPT, "--gadget-status-tsv", NULL };
+    const gchar *argv[] = { wf_path(USB_MITM_SCRIPT), "--gadget-status-tsv", NULL };
     g_autoptr(GError) error = NULL;
     g_autofree gchar *out = NULL;
     g_autofree gchar *err = NULL;
@@ -124,8 +124,8 @@ usbmitm_iface_reload(UsbMitmPage *p)
 static void
 usbmitm_refresh(UsbMitmPage *p)
 {
-    const gchar *g_argv[] = { USB_MITM_SCRIPT, "--gadget-status-tsv", NULL };
-    const gchar *r_argv[] = { USB_MITM_SCRIPT, "--responder-status-tsv", NULL };
+    const gchar *g_argv[] = { wf_path(USB_MITM_SCRIPT), "--gadget-status-tsv", NULL };
+    const gchar *r_argv[] = { wf_path(USB_MITM_SCRIPT), "--responder-status-tsv", NULL };
     g_autoptr(GError) error = NULL;
     g_autofree gchar *out = NULL;
     g_autofree gchar *err = NULL;
@@ -217,7 +217,7 @@ usbmitm_responder_start(GtkButton *button, gpointer user_data)
     /* Needs root: it configures an address, starts dnsmasq and, in
        transparent mode, installs an iptables redirect. */
     {
-        const char *argv[] = { "pkexec", USB_MITM_SCRIPT, "--responder-start",
+        const char *argv[] = { "pkexec", wf_path(USB_MITM_SCRIPT), "--responder-start",
                                mode, iface, NULL };
         p->proc = g_subprocess_newv(argv,
             G_SUBPROCESS_FLAGS_STDOUT_PIPE | G_SUBPROCESS_FLAGS_STDERR_PIPE,
@@ -282,9 +282,9 @@ usbmitm_build_overview(AppState *state, gpointer module_data)
         GtkWidget *down = gtk_button_new_with_label("Tear down");
         GtkWidget *refresh = gtk_button_new_with_label("Refresh");
         GtkWidget *st = gtk_label_new("gadget: …");
-        static const char *const a_up[]   = { "pkexec", USB_MITM_SCRIPT, "--gadget-up", NULL };
-        static const char *const a_down[] = { "pkexec", USB_MITM_SCRIPT, "--gadget-down", NULL };
-        static const char *const a_st[]   = { USB_MITM_SCRIPT, "--gadget-status-tsv", NULL };
+        const char *const a_up[]   = { "pkexec", wf_path(USB_MITM_SCRIPT), "--gadget-up", NULL };
+        const char *const a_down[] = { "pkexec", wf_path(USB_MITM_SCRIPT), "--gadget-down", NULL };
+        const char *const a_st[]   = { wf_path(USB_MITM_SCRIPT), "--gadget-status-tsv", NULL };
 
         gtk_widget_add_css_class(st, "dependency-summary");
         gtk_label_set_xalign(GTK_LABEL(st), 0.0f);
@@ -320,7 +320,7 @@ usbmitm_build_overview(AppState *state, gpointer module_data)
         GtkWidget *start = gtk_button_new_with_label("Start responder");
         GtkWidget *stop = gtk_button_new_with_label("Stop");
         GtkWidget *st = gtk_label_new("responder: …");
-        static const char *const a_stop[] = { "pkexec", USB_MITM_SCRIPT, "--responder-stop", NULL };
+        const char *const a_stop[] = { "pkexec", wf_path(USB_MITM_SCRIPT), "--responder-stop", NULL };
 
         p->iface_names = gtk_string_list_new(NULL);
         iface_dd = gtk_drop_down_new(G_LIST_MODEL(p->iface_names), NULL);
@@ -359,7 +359,7 @@ usbmitm_build_overview(AppState *state, gpointer module_data)
         GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
         GtkWidget *show = gtk_button_new_with_label("Show claimed routes");
         GtkWidget *scroll = fp_text_view();
-        static const char *const a_claim[] = { USB_MITM_SCRIPT, "--claim-route-tsv", NULL };
+        const char *const a_claim[] = { wf_path(USB_MITM_SCRIPT), "--claim-route-tsv", NULL };
 
         g_object_set_data_full(G_OBJECT(show), "um-argv",
             g_strdupv((gchar **) a_claim), (GDestroyNotify) g_strfreev);
@@ -381,8 +381,8 @@ usbmitm_build_overview(AppState *state, gpointer module_data)
         GtkWidget *show = gtk_button_new_with_label("Show siphoned");
         GtkWidget *clr = gtk_button_new_with_label("Clear");
         GtkWidget *scroll = fp_text_view();
-        static const char *const a_show[] = { USB_MITM_SCRIPT, "--siphon-tsv", NULL };
-        static const char *const a_clr[]  = { "pkexec", USB_MITM_SCRIPT, "--siphon-clear", NULL };
+        const char *const a_show[] = { wf_path(USB_MITM_SCRIPT), "--siphon-tsv", NULL };
+        const char *const a_clr[]  = { "pkexec", wf_path(USB_MITM_SCRIPT), "--siphon-clear", NULL };
 
         g_object_set_data_full(G_OBJECT(show), "um-argv",
             g_strdupv((gchar **) a_show), (GDestroyNotify) g_strfreev);

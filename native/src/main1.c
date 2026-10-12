@@ -8,52 +8,142 @@
 #define APP_ID "com.wifisting.native"
 #include "config.h"
 
-#define PROJECT_DIR WIFISTING_ROOT
-#define DEPS_SCRIPT PROJECT_DIR "/modules/00_deps.sh"
-#define IFACE_SCRIPT PROJECT_DIR "/modules/01_iface.sh"
-#define RECON_SCRIPT PROJECT_DIR "/modules/02_recon.sh"
-#define ATTACK_SCRIPT PROJECT_DIR "/modules/03_attack.sh"
-#define WPA3_ATTACK_SCRIPT PROJECT_DIR "/modules/47_wpa3_attack.sh"
-#define USB_MITM_SCRIPT PROJECT_DIR "/modules/49_usb_mitm.sh"
-#define ROUTER_LAN_SCRIPT PROJECT_DIR "/modules/50_router_lan.sh"
-#define ROUTER_WEB_SCRIPT PROJECT_DIR "/modules/51_router_web.sh"
-#define ROUTER_CONSOLE_SCRIPT PROJECT_DIR "/modules/52_router_console.sh"
-#define EVILTWIN_SCRIPT PROJECT_DIR "/modules/04_eviltwin.sh"
-#define BT_RECON_SCRIPT PROJECT_DIR "/modules/05_bt_recon.sh"
-#define PMKID_SCRIPT PROJECT_DIR "/modules/08_pmkid_offline.sh"
-#define WARDRIVE_SCRIPT PROJECT_DIR "/modules/09_wardrive.sh"
-#define BT_ATTACK_SCRIPT PROJECT_DIR "/modules/06_bt_attack.sh"
-#define ARP_SCRIPT PROJECT_DIR "/modules/07_arp.sh"
-#define ROGUE_DHCP_SCRIPT PROJECT_DIR "/modules/10_rogue_dhcp.sh"
-#define KRACK_SCRIPT PROJECT_DIR "/modules/11_krack_kr00k.sh"
-#define HID_SCRIPT PROJECT_DIR "/modules/12_hid_injection.sh"
-#define DOT1X_SCRIPT PROJECT_DIR "/modules/13_802.1x_relay.sh"
-#define IDS_SCRIPT PROJECT_DIR "/modules/14_wifi_ids.sh"
-#define WIFI_CVE_SCRIPT PROJECT_DIR "/modules/15_wifi_cve_scan.sh"
-#define BT_CVE_SCRIPT PROJECT_DIR "/modules/16_bt_cve_scan.sh"
-#define WPS_SCRIPT PROJECT_DIR "/modules/17_wps_attack.sh"
-#define CAP_SCRIPT PROJECT_DIR "/modules/18_capture_analysis.sh"
-#define WL_SCRIPT PROJECT_DIR "/modules/19_wordlist_manager.sh"
-#define KARMA_SCRIPT PROJECT_DIR "/modules/20_karma.sh"
-#define BF_SCRIPT PROJECT_DIR "/modules/21_beacon_flood.sh"
-#define P2P_SCRIPT PROJECT_DIR "/modules/22_wifi_direct.sh"
-#define PORTAL_SCRIPT PROJECT_DIR "/modules/23_captive_portal_builder.sh"
-#define MESH_SCRIPT PROJECT_DIR "/modules/24_bt_mesh.sh"
-#define SPECTRUM_SCRIPT PROJECT_DIR "/modules/25_rf_spectrum.sh"
-#define ZIGBEE_SCRIPT PROJECT_DIR "/modules/26_zigbee.sh"
-#define FIRMWARE_SCRIPT PROJECT_DIR "/modules/27_firmware_iot.sh"
-#define FW_UPDATE_AUDIT_SCRIPT PROJECT_DIR "/modules/27b_fw_update_audit.sh"
-#define FINGERPRINT_SCRIPT PROJECT_DIR "/modules/30_fingerprint.sh"
-#define KILLCHAIN_SCRIPT PROJECT_DIR "/modules/29_killchain.sh"
-#define LIVE_TRAFFIC_SCRIPT PROJECT_DIR "/modules/28_live_traffic.sh"
-#define RECON_STATE_FILE PROJECT_DIR "/state/recon.json"
-#define ATTACK_STATE_DIR PROJECT_DIR "/captures/attack"
-#define EVILTWIN_LOG_DIR PROJECT_DIR "/loot/eviltwin/log"
-#define EVILTWIN_STATE_DIR PROJECT_DIR "/loot/eviltwin"
+/* ==================================================================== */
+/*  Project root, resolved at RUNTIME                                    */
+/*                                                                       */
+/*  WIFISTING_ROOT is baked in by meson at build time, which is correct   */
+/*  only on the machine that built it. Extract the tarball anywhere else  */
+/*  and every module path points at a directory that does not exist - the */
+/*  GUI opens, the header populates, and nothing you click works.         */
+/*                                                                       */
+/*  The modules themselves never had this problem: they resolve their own */
+/*  root from $BASH_SOURCE. The binary was the one exception.             */
+/*                                                                       */
+/*  Resolution order:                                                     */
+/*    1. walk up from /proc/self/exe looking for a modules/ directory     */
+/*    2. fall back to the compiled-in WIFISTING_ROOT                      */
+/*                                                                       */
+/*  Step 1 handles builddir/ during development, bin/ from a distro       */
+/*  package, and a flat extract of the tarball, without configuration.    */
+/* ==================================================================== */
+static char *g_project_root = NULL;
+
+static const char *
+wf_root(void)
+{
+    if (g_project_root != NULL) {
+        return g_project_root;
+    }
+
+    /* /proc/self/exe rather than argv[0]: argv[0] can be a bare name
+       resolved through PATH, which tells us nothing about location. */
+    g_autofree gchar *exe = g_file_read_link("/proc/self/exe", NULL);
+
+    if (exe != NULL) {
+        gchar *dir = g_path_get_dirname(exe);
+
+        /* Four levels is enough for builddir/ and for bin/ nested one
+           deep, and stops the walk escaping to / on a strange layout. */
+        for (int i = 0; i < 4 && dir != NULL; i++) {
+            g_autofree gchar *probe = g_build_filename(dir, "modules", NULL);
+
+            if (g_file_test(probe, G_FILE_TEST_IS_DIR)) {
+                g_project_root = g_strdup(dir);
+                g_free(dir);
+                return g_project_root;
+            }
+
+            gchar *up = g_path_get_dirname(dir);
+            g_free(dir);
+            dir = up;
+        }
+        g_free(dir);
+    }
+
+    /* Nothing next to the binary. The compiled value is the right answer
+       for an in-tree run and a reasonable last resort otherwise. */
+    g_project_root = g_strdup(WIFISTING_ROOT);
+    return g_project_root;
+}
+
+/* Build a path under the resolved root, cached so repeated calls in a
+   loop do not allocate. The returned string lives for the process. */
+static const char *
+wf_path(const char *relative)
+{
+    static GHashTable *cache = NULL;
+
+    if (cache == NULL) {
+        cache = g_hash_table_new(g_str_hash, g_str_equal);
+    }
+
+    const char *hit = g_hash_table_lookup(cache, relative);
+    if (hit != NULL) {
+        return hit;
+    }
+
+    gchar *full = g_build_filename(wf_root(), relative, NULL);
+    g_hash_table_insert(cache, g_strdup(relative), full);
+    return full;
+}
+
+/* modules/<name>, for the SB_SCRIPT(n) macro. */
+static const char *
+wf_module(const char *name)
+{
+    g_autofree gchar *rel = g_strdup_printf("modules/%s", name);
+    return wf_path(rel);
+}
+
+
+#define PROJECT_DIR wf_root()
+#define DEPS_SCRIPT wf_path("modules/00_deps.sh")
+#define IFACE_SCRIPT wf_path("modules/01_iface.sh")
+#define RECON_SCRIPT wf_path("modules/02_recon.sh")
+#define ATTACK_SCRIPT wf_path("modules/03_attack.sh")
+#define WPA3_ATTACK_SCRIPT wf_path("modules/47_wpa3_attack.sh")
+/* Relative: used in a static initialiser. Resolved with wf_path()
+   at the point of use. */
+#define USB_MITM_SCRIPT "modules/49_usb_mitm.sh"
+#define ROUTER_LAN_SCRIPT wf_path("modules/50_router_lan.sh")
+#define ROUTER_WEB_SCRIPT wf_path("modules/51_router_web.sh")
+#define ROUTER_CONSOLE_SCRIPT wf_path("modules/52_router_console.sh")
+#define EVILTWIN_SCRIPT wf_path("modules/04_eviltwin.sh")
+#define BT_RECON_SCRIPT wf_path("modules/05_bt_recon.sh")
+#define PMKID_SCRIPT wf_path("modules/08_pmkid_offline.sh")
+#define WARDRIVE_SCRIPT wf_path("modules/09_wardrive.sh")
+#define BT_ATTACK_SCRIPT wf_path("modules/06_bt_attack.sh")
+#define ARP_SCRIPT wf_path("modules/07_arp.sh")
+#define ROGUE_DHCP_SCRIPT wf_path("modules/10_rogue_dhcp.sh")
+#define KRACK_SCRIPT wf_path("modules/11_krack_kr00k.sh")
+#define HID_SCRIPT wf_path("modules/12_hid_injection.sh")
+#define DOT1X_SCRIPT wf_path("modules/13_802.1x_relay.sh")
+#define IDS_SCRIPT wf_path("modules/14_wifi_ids.sh")
+#define WIFI_CVE_SCRIPT wf_path("modules/15_wifi_cve_scan.sh")
+#define BT_CVE_SCRIPT wf_path("modules/16_bt_cve_scan.sh")
+#define WPS_SCRIPT wf_path("modules/17_wps_attack.sh")
+#define CAP_SCRIPT wf_path("modules/18_capture_analysis.sh")
+#define WL_SCRIPT wf_path("modules/19_wordlist_manager.sh")
+#define KARMA_SCRIPT wf_path("modules/20_karma.sh")
+#define BF_SCRIPT wf_path("modules/21_beacon_flood.sh")
+#define P2P_SCRIPT wf_path("modules/22_wifi_direct.sh")
+#define PORTAL_SCRIPT wf_path("modules/23_captive_portal_builder.sh")
+#define MESH_SCRIPT wf_path("modules/24_bt_mesh.sh")
+#define SPECTRUM_SCRIPT wf_path("modules/25_rf_spectrum.sh")
+#define ZIGBEE_SCRIPT wf_path("modules/26_zigbee.sh")
+#define FIRMWARE_SCRIPT wf_path("modules/27_firmware_iot.sh")
+#define FW_UPDATE_AUDIT_SCRIPT wf_path("modules/27b_fw_update_audit.sh")
+#define FINGERPRINT_SCRIPT wf_path("modules/30_fingerprint.sh")
+#define KILLCHAIN_SCRIPT wf_path("modules/29_killchain.sh")
+#define LIVE_TRAFFIC_SCRIPT wf_path("modules/28_live_traffic.sh")
+#define RECON_STATE_FILE wf_path("state/recon.json")
+#define ATTACK_STATE_DIR wf_path("captures/attack")
+#define EVILTWIN_LOG_DIR wf_path("loot/eviltwin/log")
+#define EVILTWIN_STATE_DIR wf_path("loot/eviltwin")
 /* The hero artwork. splash.png held the skull plus its "- securite -"
    caption baked into one image; splash2.png replaces both. */
-#define SPLASH_IMAGE PROJECT_DIR "/native/resources/splash2.png"
-#define BACKGROUND_GIF PROJECT_DIR "/native/resources/background.jpg"
+#define SPLASH_IMAGE wf_path("native/resources/splash2.png")
+#define BACKGROUND_GIF wf_path("native/resources/background.jpg")
 #define SPLASH_DURATION_MS 2500
 
 #define SIDEBAR_MIN_WIDTH 58
@@ -1802,8 +1892,13 @@ static const char *oui_lookup(const char *mac);
 static gchar *
 state_ini_path(void)
 {
-    return g_build_filename(g_get_home_dir(),
-                            "wifisting/state/state.ini", NULL);
+    /* Under the resolved project root, like everything else.
+     *
+     * This used to be $HOME/wifisting/state/state.ini - a hardcoded
+     * directory name, so extracting the tarball to ~/tools created a
+     * ~/wifisting directory the user never asked for, and two installs
+     * silently shared one settings file. */
+    return (gchar *) wf_path("state/state.ini");
 }
 
 /* ==================================================================== */
@@ -5666,7 +5761,7 @@ recon_targets_refresh_clicked(GtkButton *button, gpointer user_data)
         g_subprocess_launcher_setenv(lnch, "WIFISTING_ROOT",
             PROJECT_DIR, TRUE);
         g_subprocess_launcher_setenv(lnch, "WIFISTING_STATE",
-            PROJECT_DIR "/state", TRUE);
+            wf_path("state"), TRUE);
         g_subprocess_launcher_setenv(lnch, "WIFISTING_HOME",
             PROJECT_DIR, TRUE);
         proc = g_subprocess_launcher_spawnv(lnch, argv, &error);
@@ -6974,7 +7069,7 @@ attack_capture_start_clicked(GtkButton *button, gpointer user_data)
         g_autofree char *ts =
             g_date_time_format(now, "%Y%m%d-%H%M%S");
         auto_prefix = g_strdup_printf(
-            ATTACK_STATE_DIR "/hs-%s", ts);
+            g_strdup_printf("%s/hs-%s", ATTACK_STATE_DIR, ts));
         prefix = auto_prefix;
 
         if (manager->capture_prefix_entry != NULL)
@@ -7311,9 +7406,9 @@ attack_build_handshake(AppState *state, gpointer module_data)
 
     gtk_widget_set_hexpand(prefix_entry, TRUE);
     gtk_editable_set_text(GTK_EDITABLE(prefix_entry),
-        ATTACK_STATE_DIR "/hs-");
+        g_build_filename(ATTACK_STATE_DIR, "hs-", NULL));
     gtk_entry_set_placeholder_text(GTK_ENTRY(prefix_entry),
-        ATTACK_STATE_DIR "/hs-<timestamp>");
+        g_build_filename(ATTACK_STATE_DIR, "hs-<timestamp>", NULL));
     gtk_widget_set_valign(prefix_label, GTK_ALIGN_CENTER);
     gtk_widget_set_valign(start, GTK_ALIGN_CENTER);
     gtk_widget_set_valign(stop, GTK_ALIGN_CENTER);
@@ -8741,9 +8836,9 @@ eviltwin_logs_reload(EvilTwinPage *manager)
     if (manager->logs_buffer == NULL) return;
 
     g_file_get_contents(
-        EVILTWIN_LOG_DIR "/dnsmasq.log", &dnsmasq, NULL, NULL);
+        g_build_filename(EVILTWIN_LOG_DIR, "dnsmasq.log", NULL), &dnsmasq, NULL, NULL);
     g_file_get_contents(
-        EVILTWIN_LOG_DIR "/lighttpd-access.log", &lighttpd, NULL, NULL);
+        g_build_filename(EVILTWIN_LOG_DIR, "lighttpd-access.log", NULL), &lighttpd, NULL, NULL);
 
     merged = g_strdup_printf(
         "=== dnsmasq.log ===\n%s\n\n=== lighttpd-access.log ===\n%s\n",
@@ -8770,9 +8865,9 @@ eviltwin_creds_reload(EvilTwinPage *manager)
     if (manager->creds_buffer == NULL) return;
 
     g_file_get_contents(
-        EVILTWIN_LOG_DIR "/creds.log", &creds, NULL, NULL);
+        g_build_filename(EVILTWIN_LOG_DIR, "creds.log", NULL), &creds, NULL, NULL);
     g_file_get_contents(
-        EVILTWIN_STATE_DIR "/PASSWORD_FOUND.txt", &found, NULL, NULL);
+        g_build_filename(EVILTWIN_STATE_DIR, "PASSWORD_FOUND.txt", NULL), &found, NULL, NULL);
 
     merged = g_strdup_printf(
         "%s\n\n=== verified ===\n%s",
@@ -21657,7 +21752,7 @@ cve_row_run_clicked(GtkButton *button, gpointer user_data)
 
     {
         const char *full[] = {
-            "pkexec", ctx->script, "--run-cve", id, NULL
+            "pkexec", wf_path(ctx->script), "--run-cve", id, NULL
         };
         proc = g_subprocess_newv(full,
             G_SUBPROCESS_FLAGS_NONE, &error);
@@ -33569,7 +33664,7 @@ zigbee_build_keys(AppState *state, gpointer module_data)
     gtk_widget_set_hexpand(entry, TRUE);
     gtk_widget_set_vexpand(scroll, TRUE);
     gtk_entry_set_placeholder_text(GTK_ENTRY(entry),
-        PROJECT_DIR "/loot/zigbee/sniff_ch15_....pcap");
+        wf_path("loot/zigbee/sniff_ch15_....pcap"));
     gtk_text_view_set_editable(GTK_TEXT_VIEW(view), FALSE);
     gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(view), FALSE);
     gtk_text_view_set_monospace(GTK_TEXT_VIEW(view), TRUE);
@@ -35013,7 +35108,10 @@ sb_build_group(AppState *state, gpointer module_data, int idx)
 
 /* ── per-module definitions ─────────────────────────────────────────── */
 
-#define SB_SCRIPT(n) PROJECT_DIR "/modules/" n
+/* Relative on purpose: these feed static initialisers, which need a
+   compile-time constant. wf_path() turns it absolute at the point of
+   use. */
+#define SB_SCRIPT(n) "modules/" n
 #define SB_ID(n)     n
 
 static const SbAction pmf_actions[] = {
@@ -36334,7 +36432,7 @@ firmware_build_analyze(AppState *state, gpointer module_data)
     gtk_widget_set_valign(extract_btn, GTK_ALIGN_CENTER);
     gtk_widget_set_valign(full_btn, GTK_ALIGN_CENTER);
     gtk_entry_set_placeholder_text(GTK_ENTRY(path_entry),
-        PROJECT_DIR "/loot/firmware/samples/fw.bin");
+        wf_path("loot/firmware/samples/fw.bin"));
     gtk_entry_set_placeholder_text(GTK_ENTRY(pattern_entry),
         "password|secret|api_key  (blank = defaults)");
     gtk_text_view_set_editable(GTK_TEXT_VIEW(view), FALSE);
@@ -37643,7 +37741,7 @@ firmware_build_update_poc(AppState *state, gpointer module_data)
 /*  REMOTE NODE — fleet controller                                      */
 /* ==================================================================== */
 
-#define REMOTE_NODE_SCRIPT PROJECT_DIR "/modules/31_remote_node.sh"
+#define REMOTE_NODE_SCRIPT wf_path("modules/31_remote_node.sh")
 
 typedef struct {
     AppState *state;
@@ -38840,7 +38938,7 @@ remote_node_build_attacks(AppState *state, gpointer module_data)
         m->atk_duration_spin = gtk_spin_button_new_with_range(10, 3600, 10);
         gtk_spin_button_set_value(GTK_SPIN_BUTTON(m->atk_duration_spin), 60);
         gtk_entry_set_placeholder_text(GTK_ENTRY(m->atk_chain_entry),
-            PROJECT_DIR "/state/chains/recon-attack.tsv");
+            wf_path("state/chains/recon-attack.tsv"));
         gtk_entry_set_placeholder_text(GTK_ENTRY(m->atk_bssid_entry),
             "AA:BB:CC:DD:EE:FF  (optional)");
         gtk_widget_set_hexpand(m->atk_chain_entry, TRUE);
@@ -39387,7 +39485,7 @@ remote_node_build_crack_grid(AppState *state, gpointer module_data)
         m->cg_node_dd = rn_new_node_dropdown();
         m->cg_hash_entry = gtk_entry_new();
         gtk_entry_set_placeholder_text(GTK_ENTRY(m->cg_hash_entry),
-            PROJECT_DIR "/loot/captures/hashes/foo.22000");
+            wf_path("loot/captures/hashes/foo.22000"));
         gtk_widget_set_hexpand(m->cg_hash_entry, TRUE);
         GtkWidget *l1 = gtk_label_new("Crack node:");
         GtkWidget *l2 = gtk_label_new("Hashfile:");
@@ -39500,7 +39598,7 @@ static ModuleSubmenuEntry remote_node_entries[] = {
 /*  RESOLVER POISON — LLMNR / NBT-NS / mDNS poisoning + NTLM relay      */
 /* ==================================================================== */
 
-#define RESOLVER_POISON_SCRIPT PROJECT_DIR "/modules/32_resolver_poison.sh"
+#define RESOLVER_POISON_SCRIPT wf_path("modules/32_resolver_poison.sh")
 #include "rp_ra.c"
 
 typedef struct {
@@ -41424,9 +41522,9 @@ fp_hop_toggled(GtkToggleButton *b, gpointer user_data)
         guint i = 0;
         argv[i++] = "pkexec";
         argv[i++] = "env";
-        argv[i++] = "WIFISTING_ROOT=" PROJECT_DIR;
-        argv[i++] = "WIFISTING_HOME=" PROJECT_DIR;
-        argv[i++] = "HOME=" PROJECT_DIR;
+        argv[i++] = g_strconcat("WIFISTING_ROOT=", PROJECT_DIR, NULL);
+        argv[i++] = g_strconcat("WIFISTING_HOME=", PROJECT_DIR, NULL);
+        argv[i++] = g_strconcat("HOME=", PROJECT_DIR, NULL);
         argv[i++] = FINGERPRINT_SCRIPT;
         argv[i++] = on ? "--hop-start" : "--hop-stop";
         argv[i]   = NULL;
@@ -44986,7 +45084,7 @@ static void
 stats_refresh(StatsPage *sp)
 {
     g_autoptr(GError) error = NULL;
-    const char *argv[] = { PROJECT_DIR "/tools/stats.sh", "--all", NULL };
+    const char *argv[] = { wf_path("tools/stats.sh"), "--all", NULL };
 
     if (sp->process != NULL) return;    /* one refresh in flight at a time */
 
@@ -49416,11 +49514,11 @@ loot_render(LootState *ls)
         child = next;
     }
 
-    loot_walk(PROJECT_DIR, PROJECT_DIR "/loot",
+    loot_walk(PROJECT_DIR, wf_path("loot"),
               0, &files, &count, filter_lower);
-    loot_walk(PROJECT_DIR, PROJECT_DIR "/captures",
+    loot_walk(PROJECT_DIR, wf_path("captures"),
               0, &files, &count, filter_lower);
-    loot_walk(PROJECT_DIR, PROJECT_DIR "/wordlists",
+    loot_walk(PROJECT_DIR, wf_path("wordlists"),
               0, &files, &count, filter_lower);
 
     files = g_list_sort(files, loot_cmp_mtime);
@@ -51620,15 +51718,17 @@ palette_run_action(PaletteRow *pr)
 
     if (g_strcmp0(pr->action, "search-data") == 0) {
         run_tool_in_terminal(state, "Search all collected data",
-            "read -rp 'Search for (MAC, BSSID, SSID or text): ' q; echo; "
-            "\"" PROJECT_DIR "/tools/search.sh\" \"$q\" 2>&1 | head -200; "
-            "echo; read -rp 'press Enter to close' _");
+            g_strdup_printf(
+                "read -rp 'Search for (MAC, BSSID, SSID or text): ' q; echo; "
+                "\"%s/tools/search.sh\" \"$q\" 2>&1 | head -200; "
+                "echo; read -rp 'press Enter to close' _", wf_root()));
     } else if (g_strcmp0(pr->action, "export-json") == 0) {
         run_tool_in_terminal(state, "Export module state as JSON",
-            "echo 'Modules with exportable data:'; echo; "
-            "\"" PROJECT_DIR "/tools/export.sh\" --list; echo; "
-            "echo 'Export one with:  tools/export.sh MODULE VERB'; echo; "
-            "read -rp 'press Enter to close' _");
+            g_strdup_printf(
+                "echo 'Modules with exportable data:'; echo; "
+                "\"%s/tools/export.sh\" --list; echo; "
+                "echo 'Export one with:  tools/export.sh MODULE VERB'; echo; "
+                "read -rp 'press Enter to close' _", wf_root()));
     } else if (g_strcmp0(pr->action, "open-terminal") == 0) {
         open_terminal_clicked(NULL, state);
     } else if (g_strcmp0(pr->action, "clear-events") == 0) {
@@ -51935,9 +52035,9 @@ palette_populate_dynamic(AppState *state)
         /* reuse loot_walk from the Loot module */
         {
             GList *walked = NULL;
-            loot_walk(PROJECT_DIR, PROJECT_DIR "/loot",
+            loot_walk(PROJECT_DIR, wf_path("loot"),
                       0, &walked, &count, NULL);
-            loot_walk(PROJECT_DIR, PROJECT_DIR "/captures",
+            loot_walk(PROJECT_DIR, wf_path("captures"),
                       0, &walked, &count, NULL);
 
             /* sort by mtime desc, keep top 8 */
@@ -52750,6 +52850,31 @@ glitch_overlay_attach(GtkOverlay *overlay)
 static void
 activate(GtkApplication *application, gpointer user_data)
 {
+    /* Widen PATH before anything spawns a helper.
+     *
+     * A desktop launcher hands a process a PATH without /usr/sbin, which is
+     * where iw, aireplay-ng and hostapd live on every Debian-family system.
+     * Launching from a terminal works and launching from the menu does not,
+     * which is a confusing way to fail.
+     *
+     * Set here rather than in wifisting.sh so it also applies when the
+     * binary is run directly, and so every g_subprocess inherits it.
+     */
+    {
+        const char *cur = g_getenv("PATH");
+        const char *extra = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/sbin";
+        g_autofree gchar *home_bin = NULL;
+        g_autofree gchar *merged = NULL;
+
+        home_bin = g_build_filename(g_get_home_dir(), ".local", "bin", NULL);
+
+        /* Put the system sbin paths first: a stale user-local copy of iw
+           should not shadow the real one. */
+        merged = g_strdup_printf("%s:%s:%s", extra, home_bin,
+                                 (cur != NULL && *cur != '\0') ? cur : "/usr/bin:/bin");
+        g_setenv("PATH", merged, TRUE);
+    }
+
     /* A second activation happens whenever the user launches the binary
        again while an instance is running: GApplication forwards it over
        D-Bus and this handler runs a SECOND time in the original process.

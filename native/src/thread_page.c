@@ -1,6 +1,6 @@
 /* Thread (802.15.4) analysis. Registered as 57_thread.
    Offline pcap analysis is the default path because it needs no radio. */
-#define THREAD_SCRIPT PROJECT_DIR "/modules/57_thread.sh"
+#define THREAD_SCRIPT wf_path("modules/57_thread.sh")
 
 typedef struct {
     AppState    *state;

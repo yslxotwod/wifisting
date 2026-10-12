@@ -1,6 +1,6 @@
 /* Router Advertisement / SLAAC page for module 32_resolver_poison.
    Registered as a second submenu entry beside the existing page. */
-#define RP_RA_SCRIPT PROJECT_DIR "/modules/32_resolver_poison.sh"
+#define RP_RA_SCRIPT wf_path("modules/32_resolver_poison.sh")
 
 typedef struct {
     AppState    *state;

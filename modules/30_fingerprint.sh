@@ -1745,8 +1745,16 @@ fp_selftest() {
     rm -rf "$MOD_TMP"; mkdir -p "$MOD_TMP"
 
     # The real DB must survive this selftest byte for byte.
+    # The real DB must survive this selftest byte for byte, but on a fresh
+    # machine there is no real DB yet. Asserting one exists tests the
+    # operator's disk rather than this code, and fails for every new user.
+    # Report which case applies, then protect it only if it is there.
     local real_db="$STATE/fingerprint.db" real_before real_after
-    chk real-db-exists "$([[ -f "$real_db" ]] && echo yes || echo no)" "yes"
+    if [[ -f "$real_db" ]]; then
+        printf 'real-db-exists\tPASS\tpresent, hashing before and after\n'
+    else
+        printf 'real-db-exists\tSKIP\tno existing database - nothing to protect\n'
+    fi
     real_before=$(sha256sum "$real_db" 2>/dev/null | cut -d' ' -f1)
 
     local save_db="$DB" save_fp="$FP"
@@ -1889,8 +1897,12 @@ SQL
     DB="$save_db"; FP="$save_fp"
     rm -rf "$MOD_TMP"
 
-    real_after=$(sha256sum "$real_db" 2>/dev/null | cut -d' ' -f1)
-    chk real-db-untouched "$real_after" "$real_before"
+    if [[ -n "$real_before" ]]; then
+        real_after=$(sha256sum "$real_db" 2>/dev/null | cut -d' ' -f1)
+        chk real-db-untouched "$real_after" "$real_before"
+    else
+        printf 'real-db-untouched\tSKIP\tno database existed to corrupt\n'
+    fi
 
     # ── Tier 1 fingerprint verbs ────────────────────────────────────────
     # Validation paths always run. Parsing assertions need scapy to build a
