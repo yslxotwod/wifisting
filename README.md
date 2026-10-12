@@ -17,6 +17,26 @@ container — nothing is locked behind the interface.
 
 ---
 
+## Notable features
+
+Frame-level jamming. Not a deauth flood — actual reactive jamming, carrier-sense manipulation and FCS corruption, driven through a modified Atheros driver. This needed porting modwifi to kernel 7.0, which is why almost nobody ships it. You can jam one access point's beacons while leaving the rest of the channel alone.
+
+SSID overflow with real IE-length control. Beacons whose SSID exceeds the 32-byte limit, carrying injection payloads in the same bytes. The published ESP32 tools can't do this — WiFi.softAP() truncates at 32, so they all list it as future work. Building the frame by hand means the length byte is independent of the content, which is the case that actually matters.
+
+Router Advertisement poisoning. mitm6 does DHCPv6 and deliberately skips Router Advertisements, so a network with no DHCPv6 in play is untouched by it. This does RA/SLAAC: one forged packet reconfigures every host's default route and resolver.
+
+Client isolation bypass. Gateway bouncing, port stealing, broadcast reflection, plus an inter-NIC relay to hold the bypass open. From the AirSnitch work (NDSS'26).
+
+USB Ethernet MITM. RNDIS-based, PoisonTap-style, over a USB port.
+
+Router recovery and console. Recovery-mode TFTP, UART/U-Boot guidance, offline flash image parsing. Unusual to find in a wireless tool.
+
+Multi-node capture. Drive a fleet of remote nodes — Pi, VM, laptop — and correlate what they see.
+
+The one I'd argue matters most: it's built to tell you when it failed. Every module has a --selftest. Hardware-gated modules name the hardware they're missing instead of returning an empty result. A module that reports OK while the target is untouched is worse than one that fails loudly, and that's the bug class I'm hunting.
+
+---
+
 ## Why this exists
 
 Most wireless tooling is deep in one lane. `aircrack-ng` is Wi-Fi. `bettercap`
@@ -132,15 +152,25 @@ of returning an empty result.
 
 **You need an adapter that can inject.**
 
-- **Works:** Atheros AR9271 — TP-Link WN722N **v1**, Alfa AWUS036NHA, Technoethical N150
-- **Does not work:** anything Intel. The `iwlwifi` driver accepts every command
-  and transmits nothing. The app detects it and refuses with an explanation.
+Nothing here is needed to build or launch the app. But most of it won't do anything without at least one of these, so it's worth knowing what each piece buys you.
 
-Monitor mode alone is not enough. With an Intel card you can browse the
-interface and read captures, but most modules will refuse to run.
+Essential — a Wi-Fi adapter that can inject. Atheros AR9271 is what I built and tested against: TP-Link WN722N v1, Alfa AWUS036NHA, Technoethical N150.
 
-Some modules need more: an SDR for RF work, a Bluetooth adapter, NFC hardware,
-a CC2531 or nRF52840 for Zigbee and Thread. The GUI marks which ones.
+Intel adapters will not work for anything involving injection. The app detects iwlwifi and tells you so instead of failing quietly, but it will refuse. Monitor mode alone isn't enough. Without one of these, you can browse the interface and read captures, and that's about it.
+
+A second Wi-Fi adapter — for client isolation testing. That module needs two interfaces associated at the same time, one acting as the victim and one as the attacker. Any managed-capable card works as the second; it doesn't need to inject.
+
+Bluetooth adapter — for the eight Bluetooth modules. Classic and BLE recon, SSP, advertising forgery, fuzzing, mesh, tracker hunting, HID injection. A recent adapter is preferable; some of the older CSR dongles won't pass BLE advertising data through.
+
+802.15.4 radio — for Zigbee and Thread. A CC2531, CC2652 or nRF52840 dongle, flashed with sniffing firmware. One radio covers both, because Thread and Zigbee share the same physical layer — they're different stacks on the same silicon. This is also the hardware that gets you toward Matter.
+
+SDR — for RF spectrum, sub-GHz, LoRa and drone Remote ID. An RTL-SDR is the cheap entry point and covers sub-GHz receive. A HackRF adds 2.4 GHz coverage and transmit, which you need for anything that isn't passive. Note that sub-GHz transmission — replay attacks and the like — needs TX-capable hardware; an RTL-SDR can only listen.
+
+NFC reader/writer — for the NFC/RFID module. A PN532 or ACR122U handles NDEF and MIFARE work. A Proxmark3 if you're going past the tag structure analysis into proper card research.
+
+USB-to-UART adapter — for router console access. CP2102, CH340 or FTDI. This is what gets you a U-Boot prompt on a router's serial header when recovery mode won't hand it to you. Worth having a set of dupont leads and, for board-level work, SOIC clips.
+
+GPS receiver — for wardriving. The wardriving module drives Kismet with gpsd, so any receiver gpsd supports works. USB or Bluetooth both fine.
 
 ---
 
