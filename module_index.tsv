@@ -56,3 +56,4 @@ MODULE	NAME	CATEGORY	VERBS	SELFTEST	HAS_INFO
 54_client_isolation	Client Isolation	WI-FI	(no usage text)	1	1
 55_ssid_overflow	SSID Overflow	WI-FI	(no usage text)	1	1
 57_thread	Thread	WIRELESS	(no usage text)	1	1
+58_proximity	Proximity	WIRELESS	(no usage text)	1	1

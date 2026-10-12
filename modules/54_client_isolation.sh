@@ -328,6 +328,64 @@ PY
 # the path and breaks the moment the two interfaces sit on networks with
 # different security. Forwarding frame by frame keeps the two sides
 # separate and lets us rewrite the addresses the network expects.
+# ── traffic rewrite ───────────────────────────────────────────────────
+#
+# The relay moved frames between interfaces; this changes them in flight.
+# That is the difference between watching an exchange and taking part in
+# it: a forwarded HTTP request can be pointed somewhere else, a response
+# body altered, a probe answered with something it did not ask for.
+#
+# RULES ARE PLAIN STRING MATCHES, DELIBERATELY
+#   replace <text> <replacement>   substitute, anywhere in the frame
+#   drop    <text>                 do not forward frames containing it
+#
+# A rule that matched on protocol fields would be more precise and much
+# harder to reason about, and the failure mode of a wrong rule here is
+# silently corrupting someone's traffic. Plain substrings are predictable:
+# you can see exactly what will and will not match.
+#
+# WHAT IT DOES NOT DO
+# There is no reassembly. A match must fall inside one frame, so a string
+# spanning a TCP segment boundary will not be caught. That is a real
+# limitation and the reason the counter reports frames changed rather
+# than claiming a session was rewritten.
+CI_RULES="$CI_DIR/rewrite.tsv"
+
+ci_rewrite_add() {
+    local action="${1:-}" match="${2:-}" repl="${3:-}"
+    case "$action" in
+        replace|drop) ;;
+        *) printf 'ERROR\tusage: --rewrite-add replace|drop MATCH [REPLACEMENT]\n' >&2; return 2 ;;
+    esac
+    [[ -z "$match" ]] && {
+        printf 'ERROR\tno match text given\n' >&2; return 2; }
+    if [[ "$action" == "replace" && -z "$repl" ]]; then
+        printf 'ERROR\treplace needs a replacement (use drop to remove)\n' >&2
+        return 2
+    fi
+    [[ "$match" == *$'\t'* || "$repl" == *$'\t'* ]] && {
+        printf 'ERROR\ttabs are the field separator - they cannot appear in a rule\n' >&2
+        return 2
+    }
+
+    mkdir -p "$CI_DIR" 2>/dev/null
+    printf '%s\t%s\t%s\n' "$action" "$match" "$repl" >> "$CI_RULES"
+    printf 'ADDED\t%s\t%s\t%s\n' "$action" "$match" "$repl"
+}
+
+ci_rewrite_list() {
+    printf 'ACTION\tMATCH\tREPLACEMENT\n'
+    [[ -s "$CI_RULES" ]] && cat "$CI_RULES"
+    return 0
+}
+
+ci_rewrite_clear() {
+    local n=0
+    [[ -s "$CI_RULES" ]] && n=$(wc -l < "$CI_RULES")
+    : > "$CI_RULES" 2>/dev/null
+    printf 'CLEARED\t%s\n' "$n"
+}
+
 ci_relay_py() {
     cat <<'PY'
 import os, sys, time, threading
@@ -337,7 +395,8 @@ iface_a, iface_b, secs, status = sys.argv[1:5]
 secs = int(secs)
 conf.verb = 0
 
-counts = {"a2b": 0, "b2a": 0}
+counts = {"a2b": 0, "b2a": 0, "dropped": 0, "rewritten": 0}
+rules = load_rules(os.environ.get("CI_RULES", ""))
 stop_at = time.time() + secs if secs > 0 else 0
 lock = threading.Lock()
 
@@ -353,17 +412,69 @@ def write_status():
         with open(tmp, "w") as fh:
             fh.write("forwarded_a2b\t%d\n" % counts["a2b"])
             fh.write("forwarded_b2a\t%d\n" % counts["b2a"])
+            fh.write("rewritten\t%d\n" % counts["rewritten"])
+            fh.write("dropped\t%d\n" % counts["dropped"])
             fh.write("elapsed\t%d\n" % int(time.time() - start))
             fh.write("running\t%d\n" % (0 if (stop_at and time.time() > stop_at) else 1))
         os.replace(tmp, status)
 
-def relay(pkt, out_iface, out_mac, key):
+def load_rules(path):
+    """Read the rule file. Absent or unreadable means no rules, not an error."""
+    rules = []
+    try:
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                parts = line.rstrip("\n").split("\t")
+                if len(parts) >= 2 and parts[0] in ("replace", "drop"):
+                    repl = parts[2] if len(parts) > 2 else ""
+                    rules.append((parts[0], parts[1].encode(), repl.encode()))
+    except OSError:
+        pass
+    return rules
+
+
+def apply_rules(p, rules):
+    """Modify P in place. Returns "drop" if a rule says so, else "forward".
+
+    Checksums are dropped after a change so scapy recomputes them. Leaving
+    a stale checksum is worse than not rewriting at all: the receiver
+    discards the frame and the connection stalls with no clue why.
+    """
+    for action, match, repl in rules:
+        raw = bytes(p)
+        if match not in raw:
+            continue
+        if action == "drop":
+            return "drop"
+
+        # Replace inside the payload rather than over the whole frame, so
+        # a match in a header does not corrupt the header.
+        for layer in (TCP, UDP):
+            if not p.haslayer(layer):
+                continue
+            body = bytes(p[layer].payload)
+            if match in body:
+                p[layer].payload = Raw(load=body.replace(match, repl))
+                del p[layer].chksum
+                if p.haslayer(IP):
+                    del p[IP].chksum
+                with lock:
+                    counts["rewritten"] += 1
+                return "forward"
+    return "forward"
+
+
+def relay(pkt, out_iface, out_mac, key, rules):
     # Rewrite the source to the outgoing interface's address, or the
     # network drops the frame as a spoofed foreign MAC.
     try:
         p = pkt.copy()
         if p.haslayer(Ether):
             p[Ether].src = out_mac
+        if rules and apply_rules(p, rules) == "drop":
+            with lock:
+                counts["dropped"] += 1
+            return
         sendp(p, iface=out_iface, verbose=0)
         with lock:
             counts[key] += 1
@@ -371,11 +482,11 @@ def relay(pkt, out_iface, out_mac, key):
         pass
 
 def sniff_a():
-    sniff(iface=iface_a, prn=lambda p: relay(p, iface_b, mac_b, "a2b"),
+    sniff(iface=iface_a, prn=lambda p: relay(p, iface_b, mac_b, "a2b", rules),
           store=0, stop_filter=lambda _: stop_at and time.time() > stop_at)
 
 def sniff_b():
-    sniff(iface=iface_b, prn=lambda p: relay(p, iface_a, mac_a, "b2a"),
+    sniff(iface=iface_b, prn=lambda p: relay(p, iface_a, mac_a, "b2a", rules),
           store=0, stop_filter=lambda _: stop_at and time.time() > stop_at)
 
 start = time.time()
@@ -387,7 +498,8 @@ while ta.is_alive() or tb.is_alive():
     write_status()
     time.sleep(1)
 write_status()
-print("RELAY_STOPPED\ta2b=%d b2a=%d" % (counts["a2b"], counts["b2a"]))
+print("RELAY_STOPPED\ta2b=%d b2a=%d rewritten=%d dropped=%d"
+      % (counts["a2b"], counts["b2a"], counts["rewritten"], counts["dropped"]))
 PY
 }
 
@@ -416,7 +528,8 @@ ci_cli_relay() {
     printf 'NOTE\ttraffic now passes through this host — expect latency\n'
 
     ci_relay_py > "$CI_DIR/relay.py"
-    setsid python3 "$CI_DIR/relay.py" "$vi" "$ai" "$secs" "$CI_DIR/relay.status" \
+    setsid env CI_RULES="$CI_RULES" \
+        python3 "$CI_DIR/relay.py" "$vi" "$ai" "$secs" "$CI_DIR/relay.status" \
         > "$CI_LOG_DIR/relay.log" 2>&1 &
     echo $! > "$CI_DIR/relay.pid"
     sleep 3
@@ -552,6 +665,40 @@ CONF
     # GTK must report unavailable rather than silently passing
     CI_AIRSNITCH=/nonexistent ci_test_gtk "" "" "" 2>/dev/null | grep -q UNAVAILABLE
     [[ $? -eq 0 ]] && chk gtk-reports-unavailable ok ok || chk gtk-reports-unavailable bad ok
+
+    # ── traffic rewrite ───────────────────────────────────────────────
+    # Rules live in the real CI_DIR, so point it somewhere disposable and
+    # put it back afterwards.
+    local save_rules="$CI_RULES"
+    CI_RULES="$CI_DIR/st-rewrite.tsv"
+    : > "$CI_RULES"
+
+    ci_rewrite_add replace "example.com" "evil.test" >/dev/null
+    chk rewrite-add-stores "$(wc -l < "$CI_RULES")" "1"
+    chk rewrite-add-fields "$(awk -F'\t' '{print NF}' "$CI_RULES")" "3"
+
+    ci_rewrite_add drop "telemetry" >/dev/null
+    chk rewrite-add-second "$(wc -l < "$CI_RULES")" "2"
+
+    local out
+    out=$(ci_rewrite_add bogus x 2>&1); chk rewrite-rejects-bad-action "$?" "2"
+    out=$(ci_rewrite_add replace "" 2>&1); chk rewrite-rejects-empty-match "$?" "2"
+    out=$(ci_rewrite_add replace "a" 2>&1); chk rewrite-needs-replacement "$?" "2"
+
+    # A tab is the field separator and cannot appear inside a rule, or the
+    # file stops round-tripping.
+    out=$(ci_rewrite_add replace "a$(printf '\t')b" c 2>&1)
+    chk rewrite-rejects-tab "$?" "2"
+
+    out=$(ci_rewrite_list)
+    grep -q 'example.com' <<<"$out" && chk rewrite-list-shows-rules ok ok \
+                                    || chk rewrite-list-shows-rules no ok
+
+    ci_rewrite_clear >/dev/null
+    chk rewrite-clear-empties "$(wc -l < "$CI_RULES")" "0"
+
+    rm -f "$CI_RULES"
+    CI_RULES="$save_rules"
 }
 
 case "${1:-}" in
@@ -562,6 +709,9 @@ case "${1:-}" in
     --c2c-broadcast) shift; ci_cli_test broadcast "$@" ;;
     --port-steal)    shift; ci_cli_test steal     "$@" ;;
     --relay)         shift; ci_cli_relay "$@" ;;
+    --rewrite-add)   shift; ci_rewrite_add "$@" ;;
+    --rewrite-list)  ci_rewrite_list ;;
+    --rewrite-clear) ci_rewrite_clear ;;
     --relay-status-tsv) ci_cli_relay_status ;;
     --status-tsv)    ci_cli_status ;;
     --stop)          ci_cli_stop ;;

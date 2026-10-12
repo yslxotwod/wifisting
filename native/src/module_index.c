@@ -68,6 +68,7 @@ static const ModuleIndexEntry module_index[] = {
     { "54_client_isolation", "Client Isolation", "WI-FI", "(no usage text)", "Client isolation bypass testing (from the AirSnitch work)\nTests gateway bouncing, broadcast reflection and port stealing.\nNeeds TWO associated interfaces. Authorised testing only.", TRUE },
     { "55_ssid_overflow", "SSID Overflow", "WI-FI", "(no usage text)", "SSID-borne buffer overflow, with injection in the same payload\nBroadcasts SSIDs past the 32-byte limit carrying malicious content.\nA scanning device is enough - no association, no user action.\nAuthorised testing only.", TRUE },
     { "57_thread", "Thread", "WIRELESS", "(no usage text)", "Thread (802.15.4) network analysis\nSame radio as Zigbee. Matter runs over Thread.\nA border router bridges the mesh to the LAN and leaks its prefix.\nOffline pcap analysis works without hardware.", TRUE },
+    { "58_proximity", "Proximity", "WIRELESS", "(no usage text)", "Presence watch: act when a device arrives or leaves.\nWatches Wi-Fi probe requests and Bluetooth inquiry.\nRuns for hours and holds state, unlike every other module.\nAuthorised use only - watching for a device is surveillance.", TRUE },
 };
 
 #define MODULE_INDEX_N ((int) G_N_ELEMENTS(module_index))

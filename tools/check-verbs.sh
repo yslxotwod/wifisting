@@ -55,6 +55,9 @@ trap 'rm -f "$TMPV"' EXIT
 is_internal() {
     case "$1" in
         --selftest|--info|--help) return 0 ;;
+        # Spawned by --start rather than pressed: the monitor loop and the
+        # relay's daemon entry points.
+        --monitor|--emit) return 0 ;;
         --status-tsv|--start-status|--hop-status-tsv|--stats-tsv) return 0 ;;
         *) return 1 ;;
     esac

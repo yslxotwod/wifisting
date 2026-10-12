@@ -1830,6 +1830,9 @@ static const ModuleDefinition modules[] = {
       { "57_thread",             "Thread",              "WIRELESS",
         "network-wireless-symbolic",
         "Thread (802.15.4) mesh analysis and border router discovery" },
+      { "58_proximity",          "Proximity",           "WIRELESS",
+        "network-wireless-symbolic",
+        "Presence watch: act when a device arrives or leaves" },
 };
 
 /* ---------- Forward declarations ---------- */
@@ -35235,6 +35238,8 @@ static const SbAction geo_actions[] = {
     { "Reference","Database format",   "--help-db",   NULL,                                FALSE },
     { "Testing",  "Known-answer test", "--selftest",  NULL,                                FALSE },
     { "Estimate",  "Query a database","--db",          "/path/to/wigle.db 48.8566 2.3522", FALSE },
+    { "Apple",   "Locate one BSSID (Apple)",  "--apple-lookup", "aa:bb:cc:dd:ee:ff", FALSE },
+    { "Apple",   "Locate a list of BSSIDs",   "--apple-batch",  "/path/bssids.txt",  FALSE },
 };
 static const SbModule geo_def = {
     "41_wifi_geolocate", SB_SCRIPT("41_wifi_geolocate.sh"),
@@ -53224,6 +53229,7 @@ activate(GtkApplication *application, gpointer user_data)
     show_splash(state);
 }
 
+#include "proximity_page.c"
 #include "thread_page.c"
 #include "ssid_overflow.c"
 #include "client_isolation.c"
@@ -53432,6 +53438,12 @@ main(int argc, char **argv)
         ROUTER_WEB_ID,
         router_web_entries,
         (int) G_N_ELEMENTS(router_web_entries),
+        NULL);
+
+    module_registry_register(
+        "58_proximity",
+        proximity_entries,
+        (int) G_N_ELEMENTS(proximity_entries),
         NULL);
 
     module_registry_register(

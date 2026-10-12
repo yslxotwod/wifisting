@@ -17,6 +17,7 @@ typedef struct {
     GtkWidget   *conf;
     GtkWidget   *victim;
     GtkWidget   *attacker;
+    GtkWidget   *rule;
     GtkWidget   *view;
     GSubprocess *proc;
 } ClientIsolationPage;
@@ -125,12 +126,16 @@ client_isolation_build(AppState *state, gpointer module_data)
     GtkWidget *victim = gtk_entry_new();
     GtkWidget *l_a = gtk_label_new("Attacker:");
     GtkWidget *attacker = gtk_entry_new();
+    GtkWidget *rule = gtk_entry_new();
     GtkWidget *b_chk = gtk_button_new_with_label("Check config");
     GtkWidget *b_if = gtk_button_new_with_label("Interfaces");
     GtkWidget *b_gtk = gtk_button_new_with_label("GTK shared?");
     GtkWidget *b_bounce = gtk_button_new_with_label("Gateway bounce");
     GtkWidget *b_bcast = gtk_button_new_with_label("Broadcast reflect");
     GtkWidget *b_steal = gtk_button_new_with_label("Port stealing");
+    GtkWidget *b_rw_add = gtk_button_new_with_label("Add rewrite rule");
+    GtkWidget *b_rw_list = gtk_button_new_with_label("List rules");
+    GtkWidget *b_rw_clear = gtk_button_new_with_label("Clear rules");
     GtkWidget *b_relay = gtk_button_new_with_label("Relay");
     GtkWidget *b_rstat = gtk_button_new_with_label("Relay status");
     GtkWidget *b_stop = gtk_button_new_with_label("Stop");
@@ -162,12 +167,17 @@ client_isolation_build(AppState *state, gpointer module_data)
     gtk_entry_set_placeholder_text(GTK_ENTRY(conf), "/path/to/client.conf");
     gtk_entry_set_placeholder_text(GTK_ENTRY(victim), "wlan0");
     gtk_entry_set_placeholder_text(GTK_ENTRY(attacker), "wlan1");
+    gtk_widget_set_hexpand(rule, TRUE);
+    /* One field, two verbs: "replace A B" or "drop A". */
+    gtk_entry_set_placeholder_text(GTK_ENTRY(rule),
+        "replace example.com evil.test  |  drop telemetry");
     gtk_widget_set_size_request(scroll, -1, 240);
 
     p->state = state;
     p->conf = conf;
     p->victim = victim;
     p->attacker = attacker;
+    p->rule = rule;
     p->view = gtk_scrolled_window_get_child(GTK_SCROLLED_WINDOW(scroll));
 
     {
@@ -178,6 +188,9 @@ client_isolation_build(AppState *state, gpointer module_data)
             { b_bounce, "--c2c-ip"        },
             { b_bcast,  "--c2c-broadcast" },
             { b_steal,  "--port-steal"    },
+            { b_rw_add,   "--rewrite-add"   },
+            { b_rw_list,  "--rewrite-list"  },
+            { b_rw_clear, "--rewrite-clear" },
             { b_relay,  "--relay"         },
             { b_rstat,  "--relay-status-tsv" },
             { b_stop,   "--stop"          },
@@ -197,6 +210,16 @@ client_isolation_build(AppState *state, gpointer module_data)
     gtk_box_append(GTK_BOX(r2), l_a);
     gtk_box_append(GTK_BOX(r2), attacker);
     gtk_box_append(GTK_BOX(r2), b_if);
+    {
+        GtkWidget *r2b = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
+        GtkWidget *l_r = gtk_label_new("Rule:");
+        gtk_box_append(GTK_BOX(r2b), l_r);
+        gtk_box_append(GTK_BOX(r2b), rule);
+        gtk_box_append(GTK_BOX(r2b), b_rw_add);
+        gtk_box_append(GTK_BOX(r2b), b_rw_list);
+        gtk_box_append(GTK_BOX(r2b), b_rw_clear);
+        gtk_box_append(GTK_BOX(card), r2b);
+    }
     gtk_box_append(GTK_BOX(r3), b_gtk);
     gtk_box_append(GTK_BOX(r3), b_bounce);
     gtk_box_append(GTK_BOX(r3), b_bcast);
