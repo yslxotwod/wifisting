@@ -17,6 +17,35 @@ container — nothing is locked behind the interface.
 
 ---
 
+## What this actually is
+
+- **A CLI.** `sudo bash wifisting.sh` gives you a numbered menu grouped by
+  category. `bash wifisting.sh --list` prints module availability without
+  needing root.
+
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/f9f1c681-3a01-4a6c-86cb-ca5a38a1d571" />
+
+
+- **A native GUI.** `wifisting-gui` builds on GTK4 + VTE and drives the
+  same shell modules through a strict TSV protocol. Roughly 15,000 lines
+  of C, no runtime dependency heavier than GTK and VTE.
+
+  <img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/87558c5c-392e-42e0-80e8-cc48079fd5c4" />
+
+
+- **A module collection.** More than 50 shell scripts, each one self-contained,
+  each one self-locating its project root (works under `pkexec`, where
+  `HOME` is `/root`), each one with a `--selftest` verb that runs offline
+  and touches no hardware.
+  
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/e04137c3-a66d-4a9b-8163-62971a46ebd7" />
+
+The GUI and the CLI are not alternatives — they share the state under
+`/tmp/wifisting/`. Select a target in the GUI's Recon tab and the CLI sees
+it. Kick off a scan from the CLI and the GUI's status pills update.
+
+---
+
 ## Why this exists
 
 Most wireless tooling is deep in one lane. `aircrack-ng` is Wi-Fi. `bettercap`
