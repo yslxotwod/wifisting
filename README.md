@@ -17,6 +17,24 @@ container — nothing is locked behind the interface.
 
 ---
 
+## Why this exists
+
+Most wireless tooling is deep in one lane. `aircrack-ng` is Wi-Fi. `bettercap`
+is network MITM. BlueZ tooling is Bluetooth. An assessment means five tools,
+five config formats, and no shared view of the target.
+
+wifisting is wide on purpose — across layers and protocols, in one place. It
+also wraps Responder, mitm6, ntlmrelayx, mdk4 and hcxdumptool rather than
+reimplementing them, so the specialist tools stay underneath where they belong.
+
+The other thing it does differently: **most tools tell you they worked.** This
+one is built to tell you when they didn't. A module that reports OK while the
+target is untouched is worse than one that fails loudly, so there is a
+`--selftest` per module and the hardware-gated ones say what's missing instead
+of returning an empty result.
+
+---
+
 ## Notable features
 
 Frame-level jamming. Not a deauth flood — actual reactive jamming, carrier-sense manipulation and FCS corruption, driven through a modified Atheros driver. This needed porting modwifi to kernel 7.0, which is why almost nobody ships it. You can jam one access point's beacons while leaving the rest of the channel alone.
@@ -34,24 +52,6 @@ Router recovery and console. Recovery-mode TFTP, UART/U-Boot guidance, offline f
 Multi-node capture. Drive a fleet of remote nodes — Pi, VM, laptop — and correlate what they see.
 
 The one I'd argue matters most: it's built to tell you when it failed. Every module has a --selftest. Hardware-gated modules name the hardware they're missing instead of returning an empty result. A module that reports OK while the target is untouched is worse than one that fails loudly, and that's the bug class I'm hunting.
-
----
-
-## Why this exists
-
-Most wireless tooling is deep in one lane. `aircrack-ng` is Wi-Fi. `bettercap`
-is network MITM. BlueZ tooling is Bluetooth. An assessment means five tools,
-five config formats, and no shared view of the target.
-
-wifisting is wide on purpose — across layers and protocols, in one place. It
-also wraps Responder, mitm6, ntlmrelayx, mdk4 and hcxdumptool rather than
-reimplementing them, so the specialist tools stay underneath where they belong.
-
-The other thing it does differently: **most tools tell you they worked.** This
-one is built to tell you when they didn't. A module that reports OK while the
-target is untouched is worse than one that fails loudly, so there is a
-`--selftest` per module and the hardware-gated ones say what's missing instead
-of returning an empty result.
 
 ---
 
