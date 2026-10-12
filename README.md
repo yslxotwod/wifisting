@@ -191,13 +191,19 @@ re-run `meson compile -C builddir`.
 what is installed, what is missing, and offers to install the missing packages.
 Do this first: half of all confusing failures later are a missing tool.
 
+<img width="1366" height="710" alt="image (3)" src="https://github.com/user-attachments/assets/21645256-3468-424d-9518-1fd974d543fa" />
+
 **2 — Set up your adapter.** Open **Interface Manager**. It lists your wireless
 interfaces and their capabilities. Put your injection-capable adapter into
 **monitor mode** here and confirm it reports `injection yes`. If it says `no`,
 retrying will not help.
 
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/ff855e33-d930-4ad5-8567-0e4fe7a26505" />
+
 **3 — Scan something.** Open **Wi-Fi Recon** and start a scan. If you see
 nothing, the adapter is in the wrong mode or on a band it does not support.
+
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/ae3a344d-332a-456d-bda0-7317422aa74d" />
 
 ---
 
