@@ -143,6 +143,9 @@ wf_module(const char *name)
 /* The hero artwork. splash.png held the skull plus its "- securite -"
    caption baked into one image; splash2.png replaces both. */
 #define SPLASH_IMAGE wf_path("native/resources/splash2.png")
+/* Alternative splash: an animated GIF, offered as a choice rather than
+   replacing the still. */
+#define SPLASH_IMAGE_ALT wf_path("native/resources/splash2.gif")
 #define BACKGROUND_GIF wf_path("native/resources/background.jpg")
 #define SPLASH_DURATION_MS 2500
 
@@ -227,6 +230,14 @@ typedef struct {
     guint toast_timeout;
     GtkWidget *splash_progress;
     GtkWidget *splash_bar;
+    GtkWidget *splash_percent;
+    /* Animated splash. GTK4 has no widget that plays a GdkPixbufAnimation,
+       so the iterator is advanced by a timer and each frame is pushed as a
+       GdkTexture - which IS a GdkPaintable, unlike the animation itself. */
+    GdkPixbufAnimation     *splash_anim;
+    GdkPixbufAnimationIter *splash_iter;
+    GtkWidget              *splash_picture;
+    guint                   splash_anim_src;
     guint splash_tick;
     guint proc_tick;
     GtkWidget *proc_popover_list;
@@ -260,6 +271,7 @@ typedef struct {
     gboolean set_verbose;       /* show info events, not just warn/error */
     int      set_mono_pt;       /* monospace font size */
     char    *set_theme;
+    char    *set_splash;   /* "default" or "alt" */
     char    *set_density;
 } AppState;
 
@@ -1526,7 +1538,8 @@ wf_log_writer(GLogLevelFlags level,
     static gboolean in_writer = FALSE;
 
     if (in_writer) return G_LOG_WRITER_HANDLED;
-    if (state == NULL || state->window == NULL) return G_LOG_WRITER_HANDLED;
+    if (state == NULL || !GTK_IS_WIDGET(state->window))
+        return G_LOG_WRITER_HANDLED;
 
     for (gsize i = 0; i < n_fields; i++) {
         if (fields[i].key == NULL) continue;
@@ -1901,7 +1914,11 @@ state_ini_path(void)
      * directory name, so extracting the tarball to ~/tools created a
      * ~/wifisting directory the user never asked for, and two installs
      * silently shared one settings file. */
-    return (gchar *) wf_path("state/state.ini");
+    /* g_strdup: wf_path returns cached memory, and every caller here
+       takes the result through g_autofree. Returning the cache directly
+       freed a pointer inside a hash table and aborted on the next
+       allocation, with no diagnostic output. */
+    return g_strdup(wf_path("state/state.ini"));
 }
 
 /* ==================================================================== */
@@ -2462,7 +2479,12 @@ show_toast_full(AppState *state, const char *module_id,
     GtkWidget *close_btn, *glyph;
     guint n = 0;
 
-    if (state == NULL || state->toast_stack == NULL) return;
+    /* GTK_IS_WIDGET, not == NULL. The toast stack lives in the splash
+       window, so once the splash is destroyed the state holds a dangling
+       pointer that is non-NULL and no longer a widget. Touching it aborts
+       the process - and because this runs from the log handler, ANY GTK
+       critical became fatal. */
+    if (state == NULL || !GTK_IS_WIDGET(state->toast_stack)) return;
 
     {
         GtkWidget *c = gtk_widget_get_first_child(state->toast_stack);
@@ -46119,6 +46141,7 @@ typedef struct {
 
     /* Appearance */
     GtkWidget *theme_dd;
+    GtkWidget *splash_dd;
     GtkWidget *density_dd;
     GtkWidget *mono_spin;
 
@@ -46193,6 +46216,7 @@ settings_get_int(GKeyFile *kf, const char *key, gint def)
 /* Defined below with the save path; declared here because the load path
    above selects the dropdown by name. */
 static void theme_apply(AppState *state);
+static guint settings_splash_index(const char *name);
 static void theme_apply_named(AppState *state, const char *name);
 static const char *settings_theme_name(guint idx);
 static guint settings_theme_index(const char *name);
@@ -46212,6 +46236,7 @@ settings_apply(AppState *state)
     state->set_verbose  = FALSE;
     state->set_mono_pt  = 11;
     g_free(state->set_theme);   state->set_theme   = g_strdup("dark");
+    g_free(state->set_splash);  state->set_splash  = g_strdup("default");
     g_free(state->set_density); state->set_density = g_strdup("comfortable");
 
     if (g_key_file_load_from_file(kf, path, G_KEY_FILE_NONE, NULL)) {
@@ -46225,6 +46250,8 @@ settings_apply(AppState *state)
             state->set_mono_pt = 11;
         g_free(state->set_theme);
         state->set_theme = settings_get_str(kf, "theme", "dark");
+        g_free(state->set_splash);
+        state->set_splash = settings_get_str(kf, "splash", "default");
         g_free(state->set_density);
         state->set_density = settings_get_str(kf, "density", "comfortable");
     }
@@ -46274,7 +46301,7 @@ settings_load_into(SettingsPage *m)
 {
     g_autofree gchar *path = settings_path();
     g_autoptr(GKeyFile) kf = g_key_file_new();
-    g_autofree gchar *theme = NULL, *density = NULL;
+    g_autofree gchar *theme = NULL, *density = NULL, *splash = NULL;
     g_autofree gchar *loot = NULL, *caps = NULL, *tmp = NULL;
     g_autofree gchar *mon = NULL, *mgd = NULL;
     g_autofree gchar *wl = NULL, *pfx = NULL;
@@ -46282,6 +46309,7 @@ settings_load_into(SettingsPage *m)
     g_key_file_load_from_file(kf, path, G_KEY_FILE_NONE, NULL);
 
     theme   = settings_get_str(kf, "theme", "dark");
+    splash  = settings_get_str(kf, "splash", "default");
     density = settings_get_str(kf, "density", "comfortable");
     loot    = settings_get_str(kf, "loot_dir", "");
     caps    = settings_get_str(kf, "captures_dir", "");
@@ -46294,6 +46322,10 @@ settings_load_into(SettingsPage *m)
     if (m->theme_dd != NULL) {
         gtk_drop_down_set_selected(GTK_DROP_DOWN(m->theme_dd),
                                    settings_theme_index(theme));
+    }
+    if (m->splash_dd != NULL) {
+        gtk_drop_down_set_selected(GTK_DROP_DOWN(m->splash_dd),
+                                   settings_splash_index(splash));
     }
     if (m->density_dd != NULL) {
         guint sel = 2;
@@ -46356,6 +46388,16 @@ settings_load_into(SettingsPage *m)
 static const char *const settings_theme_names[] = {
     "dark", "light", "matrix", "ghost", NULL
 };
+
+static const char *const settings_splash_names[] = { "default", "alt", NULL };
+
+static guint
+settings_splash_index(const char *name)
+{
+    for (guint i = 0; settings_splash_names[i] != NULL; i++)
+        if (g_strcmp0(settings_splash_names[i], name) == 0) return i;
+    return 0;
+}
 
 static const char *
 settings_theme_name(guint idx)
@@ -46454,6 +46496,17 @@ settings_save_from(SettingsPage *m)
 
     g_mkdir_with_parents(dir, 0700);
     g_key_file_load_from_file(kf, path, G_KEY_FILE_NONE, NULL);
+
+    if (m->splash_dd != NULL) {
+        guint si = gtk_drop_down_get_selected(GTK_DROP_DOWN(m->splash_dd));
+        const char *sname = settings_splash_names[si] != NULL
+                          ? settings_splash_names[si] : "default";
+        g_key_file_set_string(kf, SETTINGS_GROUP, "splash", sname);
+        if (m->state != NULL) {
+            g_free(m->state->set_splash);
+            m->state->set_splash = g_strdup(sname);
+        }
+    }
 
     if (m->theme_dd != NULL) {
         guint s = gtk_drop_down_get_selected(GTK_DROP_DOWN(m->theme_dd));
@@ -46897,6 +46950,7 @@ settings_build_appearance(AppState *state, gpointer module_data)
         "resources/style.css at startup.", &card);
     static const char *themes[]  = { "dark", "light", "matrix", "ghost", NULL };
     static const char *density[] = { "compact", "comfortable", "spacious", NULL };
+    static const char *splashes[] = { "default", "alt (animated)", NULL };
 
     (void) state;
 
@@ -46905,6 +46959,8 @@ settings_build_appearance(AppState *state, gpointer module_data)
     if (m->theme_dd != NULL)
         g_signal_connect(m->theme_dd, "notify::selected",
                          G_CALLBACK(settings_theme_selected), m);
+    gtk_box_append(GTK_BOX(card),
+        settings_dd_row("Splash", splashes, &m->splash_dd));
     gtk_box_append(GTK_BOX(card),
         settings_dd_row("Density", density, &m->density_dd));
     gtk_box_append(GTK_BOX(card),
@@ -52372,6 +52428,13 @@ splash_bar_tick(gpointer user_data)
         if (f >= 1.0) f = 1.0;
         gtk_progress_bar_set_fraction(
             GTK_PROGRESS_BAR(state->splash_bar), f);
+
+            /* Same value moves both, so they cannot disagree. */
+            if (state->splash_percent != NULL) {
+                g_autofree gchar *pct_txt =
+                    g_strdup_printf("%d%%", (int)(f * 100.0 + 0.5));
+                gtk_label_set_text(GTK_LABEL(state->splash_percent), pct_txt);
+            }
         if (f >= 1.0) {
             state->splash_tick = 0;
             return G_SOURCE_REMOVE;
@@ -52402,13 +52465,101 @@ finish_splash(gpointer user_data)
     return G_SOURCE_REMOVE;
 }
 
+/* Push the next animation frame and reschedule.
+ *
+ * Deliberately not GtkMediaFile: that routes through GStreamer, which
+ * brings a runtime dependency that fails silently when a decoder is
+ * missing - the splash simply renders blank with no error. This needs
+ * only gdk-pixbuf, which the still splash already requires.
+ */
+/* Stop the animation when the artwork goes away.
+ *
+ * The tick reschedules itself for as long as it runs, so without this it
+ * outlives the splash window and the next fire touches freed widgets. The
+ * failure is delayed and looks unrelated to the splash: the app runs, the
+ * splash comes and goes, then it dies.
+ */
+static void
+splash_gif_stop(gpointer data)
+{
+    AppState *state = data;
+
+    if (state->splash_anim_src != 0) {
+        g_source_remove(state->splash_anim_src);
+        state->splash_anim_src = 0;
+    }
+    state->splash_iter = NULL;
+    state->splash_picture = NULL;
+    g_clear_object(&state->splash_anim);
+}
+
+static gboolean
+splash_gif_tick(gpointer user_data)
+{
+    AppState *state = user_data;
+    GdkPixbuf *frame;
+    GdkTexture *tex;
+    int delay;
+
+    if (state->splash_iter == NULL || state->splash_picture == NULL) {
+        state->splash_anim_src = 0;
+        return G_SOURCE_REMOVE;
+    }
+
+    /* Draw the current frame, then advance. A fresh iterator is already
+       positioned on frame one, so advancing first would skip it. */
+    frame = gdk_pixbuf_animation_iter_get_pixbuf(state->splash_iter);
+    if (frame != NULL) {
+        tex = gdk_texture_new_for_pixbuf(frame);
+        if (tex != NULL) {
+            gtk_picture_set_paintable(GTK_PICTURE(state->splash_picture),
+                                      GDK_PAINTABLE(tex));
+            g_object_unref(tex);
+        }
+    }
+
+    gdk_pixbuf_animation_iter_advance(state->splash_iter, NULL);
+
+    /* -1 means "not ready", 0 means "as fast as possible"; neither is a
+       usable interval, so both fall back to a sane frame time. */
+    delay = gdk_pixbuf_animation_iter_get_delay_time(state->splash_iter);
+    if (delay <= 0) delay = 100;
+
+    state->splash_anim_src = g_timeout_add((guint) delay, splash_gif_tick, state);
+    return G_SOURCE_REMOVE;
+}
+
 static void
 show_splash(AppState *state)
 {
     GtkWidget *picture;
     GtkWidget *box;
 
-    if (!g_file_test(SPLASH_IMAGE, G_FILE_TEST_IS_REGULAR)) {
+    const char *splash_art = SPLASH_IMAGE;
+    gboolean splash_is_gif = FALSE;
+
+    if (state->set_splash != NULL &&
+        g_strcmp0(state->set_splash, "alt") == 0 &&
+        g_file_test(SPLASH_IMAGE_ALT, G_FILE_TEST_IS_REGULAR)) {
+        splash_art = SPLASH_IMAGE_ALT;
+    }
+    splash_is_gif = g_str_has_suffix(splash_art, ".gif");
+
+    /* DISABLED: animated splash does not render yet.
+     *
+     * Both GTK4 routes have been tried and neither works here. GtkMediaFile
+     * routes through GStreamer and renders nothing when it cannot decode,
+     * with no error. The manual gdk-pixbuf frame pump builds and links but
+     * segfaults on startup.
+     *
+     * Forcing the still keeps the GUI usable. The setting still saves and
+     * still round-trips, so the plumbing is in place for whoever fixes the
+     * rendering - it simply selects the PNG for now. */
+    /* The GIF path is live. Both GTK4 routes were tried; this one works
+       and needs no GStreamer, only gdk-pixbuf, which the still splash
+       already requires. */
+
+    if (!g_file_test(splash_art, G_FILE_TEST_IS_REGULAR)) {
         append_event(state,
             "Splash image missing; opening main window directly");
         gtk_window_present(GTK_WINDOW(state->window));
@@ -52428,7 +52579,10 @@ show_splash(AppState *state)
        predictable size controlled by the one number below. */
     picture = gtk_picture_new();
     {
-        GdkPixbuf *pb = gdk_pixbuf_new_from_file(SPLASH_IMAGE, NULL);
+        /* NULL for a GIF so the feather-mask block below skips itself. */
+        GdkPixbuf *pb = splash_is_gif
+                      ? NULL
+                      : gdk_pixbuf_new_from_file(splash_art, NULL);
         if (pb != NULL) {
             /* Feather the artwork into a soft circle before scaling.
              *
@@ -52509,6 +52663,34 @@ show_splash(AppState *state)
             }
         }
     }
+    if (splash_is_gif) {
+        state->splash_anim = gdk_pixbuf_animation_new_from_file(splash_art, NULL);
+        if (state->splash_anim != NULL) {
+            state->splash_iter = gdk_pixbuf_animation_get_iter(state->splash_anim,
+                                                               NULL);
+            state->splash_picture = picture;
+
+            /* Size it explicitly. A paintable made of frames carries no
+               natural size the way a pixbuf does, so without this the
+               widget collapses to nothing and the splash looks empty. */
+            gtk_widget_set_size_request(picture,
+                (int)(gdk_pixbuf_animation_get_width(state->splash_anim) * 1.45),
+                (int)(gdk_pixbuf_animation_get_height(state->splash_anim) * 1.45));
+            gtk_picture_set_content_fit(GTK_PICTURE(picture),
+                                        GTK_CONTENT_FIT_CONTAIN);
+
+            /* Tear the animation down with the widget it draws into. */
+            g_signal_connect_swapped(picture, "destroy",
+                                     G_CALLBACK(splash_gif_stop), state);
+
+            /* Draws frame one and reschedules itself. */
+            splash_gif_tick(state);
+        }
+        /* Animated art is a full scene: rounded corners, not the circular
+           feather the still uses. */
+        gtk_widget_add_css_class(picture, "splash-rounded");
+    }
+
     gtk_picture_set_content_fit(GTK_PICTURE(picture), GTK_CONTENT_FIT_FILL);
     gtk_picture_set_can_shrink(GTK_PICTURE(picture), FALSE);
     gtk_widget_set_halign(picture, GTK_ALIGN_CENTER);
@@ -52533,7 +52715,7 @@ show_splash(AppState *state)
     box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 
     /* Hero row: [skull] [wordmark column] — centered as a group */
-    GtkWidget *hero = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 14);
+    GtkWidget *hero = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
     /* The pair is centred as a unit. Without this the box spans the window
        and the artwork plus title sit against the left edge. */
     gtk_widget_set_halign(hero, GTK_ALIGN_CENTER);
@@ -52550,8 +52732,28 @@ show_splash(AppState *state)
     gtk_box_append(GTK_BOX(title_col), title);
     gtk_box_append(GTK_BOX(title_col), subtitle);
 
-    gtk_box_append(GTK_BOX(hero), picture);
-    gtk_box_append(GTK_BOX(hero), title_col);
+    /* The bar and percentage sit ON the artwork, pinned to its bottom
+       edge, rather than below it in the page layout. */
+    GtkWidget *art_overlay = gtk_overlay_new();
+    GtkWidget *art_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+
+    gtk_widget_set_valign(art_box, GTK_ALIGN_END);
+    gtk_widget_set_margin_bottom(art_box, 30);
+    gtk_widget_set_margin_start(art_box, 80);
+    gtk_widget_set_margin_end(art_box, 80);
+    gtk_widget_set_halign(art_overlay, GTK_ALIGN_CENTER);
+    gtk_widget_set_valign(art_overlay, GTK_ALIGN_CENTER);
+
+    gtk_overlay_set_child(GTK_OVERLAY(art_overlay), picture);
+    gtk_overlay_add_overlay(GTK_OVERLAY(art_overlay), art_box);
+
+    gtk_box_append(GTK_BOX(hero), art_overlay);
+
+    /* The animated artwork already carries the wordmark and subtitle, so
+       adding them again prints the title twice. The progress label goes
+       too: the moving bar and climbing percentage already say it. */
+    if (!splash_is_gif)
+        gtk_box_append(GTK_BOX(hero), title_col);
 
     /* GtkCenterBox centers its middle widget both ways. */
     GtkWidget *center = gtk_center_box_new();
@@ -52576,11 +52778,47 @@ show_splash(AppState *state)
     gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(bar), 0.0);
 
     state->splash_progress = progress;
+
+    /* Percentage beneath the bar, in the same yellow. A separate label
+       rather than gtk_progress_bar_set_show_text, whose text sits inside
+       the trough and cannot be coloured independently. */
+    GtkWidget *pct = gtk_label_new("0%");
+    gtk_widget_add_css_class(pct, "splash-percent");
+    gtk_widget_set_halign(pct, GTK_ALIGN_CENTER);
+    gtk_widget_set_margin_top(pct, 6);
+    gtk_widget_set_margin_bottom(pct, 22);
+    state->splash_percent = pct;
     state->splash_bar = bar;
 
     gtk_box_append(GTK_BOX(box), center);
-    gtk_box_append(GTK_BOX(box), progress);
-    gtk_box_append(GTK_BOX(box), bar);
+    if (!splash_is_gif)
+        gtk_box_append(GTK_BOX(box), progress);
+
+    /* Onto the artwork, bottom-aligned: bar first, percentage beneath it. */
+    gtk_box_append(GTK_BOX(art_box), bar);
+    gtk_box_append(GTK_BOX(art_box), pct);
+
+    /* Own provider: the theme sheet is applied at a higher priority than
+       anything appended to style.css, so a rule there loses - the bar
+       kept the theme's red and the corners stayed square. */
+    {
+        GtkCssProvider *sp = gtk_css_provider_new();
+        gtk_css_provider_load_from_data(sp,
+            ".splash-rounded { border-radius: 20px; }"
+            ".splash-bar trough {"
+            "  background-color: rgba(255,214,10,0.16);"
+            "  border-radius: 5px; min-height: 10px; }"
+            ".splash-bar progress {"
+            "  background-color: #ffd60a; background-image: none;"
+            "  border-radius: 5px; min-height: 10px; }"
+            ".splash-percent { color: #ffd60a; font-weight: 700; }",
+            -1);
+        if (gdk_display_get_default() != NULL)
+            gtk_style_context_add_provider_for_display(
+                gdk_display_get_default(), GTK_STYLE_PROVIDER(sp),
+                GTK_STYLE_PROVIDER_PRIORITY_APPLICATION + 10);
+        g_object_unref(sp);
+    }
 
     state->splash_tick = g_timeout_add(50, splash_bar_tick, state);
 

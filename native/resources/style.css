@@ -1911,3 +1911,37 @@ textview.event-view > text,
 .theme-ghost .event-view {
     border-color: rgba(0, 123, 255, 0.22);
 }
+
+/* ---------- splash artwork + progress ---------- */
+
+/* Rounded corners on the widget, not the pixels. A CSS radius clips during
+   rendering, so an animated splash stays rounded on every frame without
+   the mask being reapplied. The 4.14 selector is the older name; both are
+   listed so the radius works whichever GTK the build lands on. */
+.splash-rounded {
+    border-radius: 18px;
+}
+
+.splash-art {
+    border-radius: 18px;
+}
+
+/* Yellow loading bar and percentage. The bar colour is set on the trough
+   and on progress, because some themes draw the fill from `progress`
+   rather than inheriting the trough colour. */
+.splash-bar trough {
+    background-color: rgba(255, 214, 10, 0.14);
+    border-radius: 4px;
+    min-height: 8px;
+}
+
+.splash-bar progress {
+    background-color: #ffd60a;
+    border-radius: 4px;
+    min-height: 8px;
+}
+
+.splash-percent {
+    color: #ffd60a;
+    font-weight: 600;
+}
