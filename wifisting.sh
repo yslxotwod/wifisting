@@ -105,8 +105,8 @@ fi
 
 # ── palette ─────────────────────────────────────────────────
 C_RED=$'\e[38;5;196m'; C_GRN=$'\e[38;5;46m';   C_YEL=$'\e[38;5;226m'
-C_CYN=$'\e[38;5;51m';  C_MAG=$'\e[38;5;201m';  C_BLU=$'\e[38;5;39m'
-C_ORG=$'\e[38;5;208m'; C_PUR=$'\e[38;5;135m';  C_DIM=$'\e[38;5;240m'
+C_CYN=$'\e[38;5;51m';  C_MAG=$'\e[38;5;203m';  C_BLU=$'\e[38;5;39m'
+C_ORG=$'\e[38;5;208m'; C_PUR=$'\e[38;5;160m';  C_DIM=$'\e[38;5;240m'
 C_WHT=$'\e[38;5;255m'; C_BOLD=$'\e[1m';        C_RESET=$'\e[0m'
 export C_RED C_GRN C_YEL C_CYN C_MAG C_BLU C_ORG C_PUR C_DIM C_WHT C_BOLD C_RESET
 
@@ -133,43 +133,72 @@ fi
 # ── module table ────────────────────────────────────────────
 # CATEGORY|KEY|LABEL|MENU_FUNCTION
 MODULE_TABLE=(
-    "SYSTEM|01|Dependency Manager|deps_menu"
-    "SYSTEM|02|Interface Manager|iface_menu"
+  "SYSTEM|00|Dependencies|script:00_deps.sh"
+  "SYSTEM|01|Interface Manager|script:01_iface.sh"
 
-    "WI-FI|03|Wi-Fi Recon|recon_menu"
-    "WI-FI|04|Wardriving|wardrive_menu"
-    "WI-FI|05|Wi-Fi Attack|attack_menu"
-    "WI-FI|06|Offline PMKID|pmkid_menu"
-    "WI-FI|07|WPS Attack|wps_menu"
-    "WI-FI|08|KRACK / Kr00k|krack_kr00k_menu"
-    "WI-FI|09|Evil Twin|eviltwin_menu"
-    "WI-FI|10|Karma|karma_menu"
-    "WI-FI|11|Portal Builder|portal_menu"
-    "WI-FI|12|Beacon Flood|beacon_flood_menu"
-    "WI-FI|13|Wi-Fi Direct / P2P|p2p_menu"
-    "WI-FI|14|Rogue DHCP|rogue_dhcp_menu"
+  "WI-FI|02|Wi-Fi Recon|script:02_recon.sh"
+  "WI-FI|03|WPA/2 Attack|script:03_attack.sh"
+  "WI-FI|04|Evil Twin|script:04_eviltwin.sh"
+  "WI-FI|08|Offline PMKID|script:08_pmkid_offline.sh"
+  "WI-FI|09|Wardriving|script:09_wardrive.sh"
+  "WI-FI|10|Rogue DHCP|script:10_rogue_dhcp.sh"
+  "WI-FI|11|KRACK / Kr00k|script:11_krack_kr00k.sh"
+  "WI-FI|17|WPS Attack|script:17_wps_attack.sh"
+  "WI-FI|20|Karma|script:20_karma.sh"
+  "WI-FI|21|Wi-Fi DoS / Flood|script:21_beacon_flood.sh"
+  "WI-FI|22|Wi-Fi Direct / P2P|script:22_wifi_direct.sh"
+  "WI-FI|23|Portal Builder|script:23_captive_portal_builder.sh"
+  "WI-FI|34|PMF Bypass|script:34_pmf_bypass.sh"
+  "WI-FI|35|Wi-Fi 6 Attacks|script:35_wifi6_attacks.sh"
+  "WI-FI|47|WPA3 / SAE Attack|script:47_wpa3_attack.sh"
+  "WI-FI|48|WEP Attacks|script:48_wep_attack.sh"
+  "WI-FI|53|Jamming|script:53_jamming.sh"
+  "WI-FI|54|Client Isolation|script:54_client_isolation.sh"
+  "WI-FI|55|SSID Overflow|script:55_ssid_overflow.sh"
 
-    "BLUETOOTH|15|Bluetooth Recon|bt_recon_menu"
-    "BLUETOOTH|16|Bluetooth Attack|bt_attack_menu"
-    "BLUETOOTH|17|BLE Mesh|mesh_menu"
+  "NETWORK|07|ARP / MITM|script:07_arp.sh"
+  "NETWORK|13|Enterprise Kit|script:13_802.1x_relay.sh"
+  "NETWORK|28|Live Traffic|script:28_live_traffic.sh"
+  "NETWORK|32|Resolver Poison|script:32_resolver_poison.sh"
+  "NETWORK|50|Router LAN Attacks|script:50_router_lan.sh"
+  "NETWORK|51|Router Web UI|script:51_router_web.sh"
 
-    "NETWORK|18|ARP / MITM|arp_menu"
-    "NETWORK|19|Enterprise Kit|dot1x_menu"
+  "BLUETOOTH|05|Bluetooth Recon|script:05_bt_recon.sh"
+  "BLUETOOTH|06|Bluetooth Attack|script:06_bt_attack.sh"
+  "BLUETOOTH|24|BLE Mesh|script:24_bt_mesh.sh"
+  "BLUETOOTH|36|Tracker Hunt|script:36_ble_tracker_hunt.sh"
+  "BLUETOOTH|37|Classic SSP|script:37_bt_classic_ssp.sh"
+  "BLUETOOTH|38|Adv Forge|script:38_ble_adv_forge.sh"
+  "BLUETOOTH|39|BLE Fuzzing|script:39_ble_fuzz.sh"
 
-    "PHYSICAL|20|HID Injection|hid_menu"
+  "WIRELESS|57|Thread|script:57_thread.sh"
+  "WIRELESS|58|Proximity|script:58_proximity.sh"
 
-    "ANALYSIS|21|Capture Analysis|capture_analysis_menu"
-    "ANALYSIS|22|Wordlist Manager|wordlist_menu"
-    "ANALYSIS|23|Fingerprint|fingerprint_menu"
+  "PHYSICAL|12|HID Injection|script:12_hid_injection.sh"
+  "PHYSICAL|40|Wi-Fi CSI|script:40_wifi_csi.sh"
+  "PHYSICAL|42|Sub-GHz RF|script:42_subghz.sh"
+  "PHYSICAL|43|NFC / RFID|script:43_nfc_rfid.sh"
+  "PHYSICAL|44|LoRa / LoRaWAN|script:44_lora_loraWAN.sh"
+  "PHYSICAL|45|Drone Remote ID|script:45_drone_remote_id.sh"
+  "PHYSICAL|49|USB Ethernet MitM|script:49_usb_mitm.sh"
+  "PHYSICAL|52|Router Console|script:52_router_console.sh"
 
-    "SCANNERS|24|Wi-Fi CVE Kit|wifi_cve_scan_menu"
-    "SCANNERS|25|Bluetooth CVE Kit|btcve_scan_menu"
-    "SCANNERS|26|Wireless IDS|wifi_ids_menu"
-    "SCANNERS|27|RF Spectrum|spectrum_menu"
-    "SCANNERS|28|Zigbee|zigbee_menu"
-    "SCANNERS|29|Firmware / IoT|firmware_menu"
+  "SCANNERS|14|Wireless IDS|script:14_wifi_ids.sh"
+  "SCANNERS|15|Wi-Fi CVE Kit|script:15_wifi_cve_scan.sh"
+  "SCANNERS|16|Bluetooth CVE Kit|script:16_bt_cve_scan.sh"
+  "SCANNERS|25|RF Spectrum|script:25_rf_spectrum.sh"
+  "SCANNERS|26|Zigbee / 802.15.4|script:26_zigbee.sh"
+  "SCANNERS|27|Firmware / IoT|script:27_firmware_iot.sh"
 
-    "AUTOMATION|30|Killchain|killchain_menu"
+  "ANALYSIS|18|Capture Analysis|script:18_capture_analysis.sh"
+  "ANALYSIS|19|Wordlist Manager|script:19_wordlist_manager.sh"
+  "ANALYSIS|27b|Fw Update Audit|script:27b_fw_update_audit.sh"
+  "ANALYSIS|30|Fingerprint|script:30_fingerprint.sh"
+  "ANALYSIS|41|Geolocation|script:41_wifi_geolocate.sh"
+  "ANALYSIS|46|Public Wi-Fi Audit|script:46_public_wifi_audit.sh"
+
+  "AUTOMATION|29|Killchain|script:29_killchain.sh"
+  "AUTOMATION|31|Remote Node|script:31_remote_node.sh"
 )
 
 # ── banner ──────────────────────────────────────────────────
@@ -179,6 +208,12 @@ banner() {
 
     printf '%s%s' "$C_MAG" "$C_BOLD"
     cat << 'B'
+
+            ) ) )
+           ( ( (
+            ) )
+             (
+            ×
  ██╗    ██╗██╗███████╗██╗███████╗████████╗██╗███╗   ██╗ ██████╗
  ██║    ██║██║██╔════╝██║██╔════╝╚══██╔══╝██║████╗  ██║██╔════╝
  ██║ █╗ ██║██║█████╗  ██║███████╗   ██║   ██║██╔██╗ ██║██║  ███╗
@@ -206,7 +241,7 @@ menu_row() {
     local kcol="$C_ORG" lcol="$C_WHT" tag=""
     case "$state" in
         missing)
-            kcol="$C_DIM"; lcol="$C_DIM"; tag=" ${C_YEL}[offline]${C_RESET}" ;;
+            kcol="$C_DIM"; lcol="$C_DIM"; tag=" ${C_YEL}[not loaded]${C_RESET}" ;;
     esac
     printf '   %s│%s %s[%s]%s  %s%s%s%s\n' \
         "$C_DIM" "$C_RESET" \
@@ -221,7 +256,16 @@ section_header() {
 }
 
 row_state() {
-    declare -F "$1" >/dev/null 2>&1 && echo present || echo missing
+    local ref="$1"
+
+    # script:<file> rows — present when the module exists on disk.
+    if [[ "$ref" == script:* ]]; then
+        [[ -f "$MODULES_DIR/${ref#script:}" ]] && echo present || echo missing
+        return
+    fi
+
+    # Legacy function rows.
+    declare -F "$ref" >/dev/null 2>&1 && echo present || echo missing
 }
 
 fn_for_key() {
@@ -259,24 +303,29 @@ if [[ ${#MODULE_FILES[@]} -eq 0 ]]; then
     (( WIFISTING_SOURCED )) && return 1 || exit 1
 fi
 
+# Syntax-check every module. They are deliberately NOT sourced.
+#
+# The menu runs each one as its own process, so it needs nothing from
+# inside them. Sourcing all 58 executed every module's top-level code at
+# startup: that is slow, it trips any module that calls exit or expects
+# arguments, and it printed a "failed to load" error on every launch -
+# which read as though all the modules were broken.
 for mod in "${MODULE_FILES[@]}"; do
     if ! bash -n "$mod" 2>/dev/null; then
         err "syntax error in $(basename "$mod") — skipping"
         continue
     fi
 
-    # Some modules call `exit` at top level. Sourcing such a file would
-    # kill this shell mid-loop. Shadow the exit builtin for the duration
-    # of the source, then unshadow.
+    # Only the modules that define a menu function need sourcing - those
+    # are the ones offering an interactive interface here. Everything
+    # else is run as its own process, so its top-level code never runs at
+    # startup. That is what made the old loop slow and noisy.
+    grep -qE '^[a-z0-9_]+_menu\(\)' "$mod" || continue
+
+    # Some call `exit` at top level; shadow it or this shell dies mid-loop.
     _prev_exit_fn=$(declare -f exit 2>/dev/null || true)
     exit() { return "${1:-0}"; }
-
-    if source "$mod" 2>>"$SESSION_LOG"; then
-        ok "loaded: $(basename "$mod")"
-    else
-        err "runtime error in $(basename "$mod")"
-    fi
-
+    source "$mod" 2>>"$SESSION_LOG" || true
     unset -f exit
     if [[ -n "$_prev_exit_fn" ]]; then
         eval "$_prev_exit_fn"
@@ -294,7 +343,10 @@ if (( WIFISTING_LIST )) && (( ! WIFISTING_SOURCED )); then
             printf '  %s%s%s\n' "$C_MAG" "$cat" "$C_RESET"
             local_cat="$cat"
         fi
-        if declare -F "$fn" >/dev/null 2>&1; then
+        # Route through row_state, which knows about script: rows. An
+        # inline declare -F here reported every module as missing, because
+        # a script reference is not a function name.
+        if [[ "$(row_state "$fn")" == present ]]; then
             printf '    [%s] %-28s %s✓%s\n' "$key" "$label" "$C_GRN" "$C_RESET"
         else
             printf '    [%s] %-28s %s✗%s\n' "$key" "$label" "$C_DIM" "$C_RESET"
@@ -332,6 +384,77 @@ launch_gui() {
         info "wifisting-gui is already running"
         sleep 1
     fi
+}
+
+# ── generic module menu ──────────────────────────────────────
+# Modules that ship their own _menu get that instead. The rest are driven
+# from their --help text: the CLI lists the verbs the module advertises and
+# asks for any arguments the help shows. A new module is therefore usable
+# from the menu the moment its help exists - nothing to write per module,
+# and nothing to forget, which is how the old table drifted out of date.
+run_module_menu() {
+    local script="$1"
+    local base; base=$(basename "$script")
+    local -a verbs=() args=() descs=()
+    local line
+
+    while IFS= read -r line; do
+        # Take the verb, then split the remainder on the run of two or
+        # more spaces that separates arguments from description. Matching
+        # the placeholder by shape instead broke on multi-word argument
+        # lists such as "MAC [LABEL]", so only a handful of verbs parsed.
+        [[ "$line" =~ ^[[:space:]]+(--[a-z0-9-]+)(.*)$ ]] || continue
+        local v="${BASH_REMATCH[1]}" rest="${BASH_REMATCH[2]}" a="" d="$rest"
+
+        if [[ "$rest" =~ ^[[:space:]]+([^[:space:]].*[^[:space:]]|[^[:space:]])[[:space:]]{2,}(.+)$ ]]; then
+            a="${BASH_REMATCH[1]}"
+            d="${BASH_REMATCH[2]}"
+        fi
+
+        verbs+=("$v")
+        args+=("$a")
+        descs+=("$d")
+    done < <(timeout 20 bash "$script" --help 2>/dev/null)
+
+    # Nothing parseable: run it bare rather than showing an empty menu.
+    if (( ${#verbs[@]} == 0 )); then
+        bash "$script"
+        printf '\n   press enter to return\n'; read -r _
+        return
+    fi
+
+    local pick idx i val want
+    while true; do
+        clear
+        printf '\n   %s%s%s\n\n' "$C_MAG$C_BOLD" "$base" "$C_RESET"
+        for i in "${!verbs[@]}"; do
+            printf '   %s[%2d]%s %-30s %s%s%s\n' \
+                "$C_ORG$C_BOLD" "$((i + 1))" "$C_RESET" \
+                "${verbs[$i]}${args[$i]}" "$C_DIM" "${descs[$i]}" "$C_RESET"
+        done
+        printf '\n   %s[b]%s back to the menu\n' "$C_ORG$C_BOLD" "$C_RESET"
+        printf '\n   %sλ%s ' "$C_MAG$C_BOLD" "$C_RESET"
+
+        read -r pick
+        case "$pick" in b|B|q|Q|"") return ;; esac
+        [[ "$pick" =~ ^[0-9]+$ ]] || continue
+        (( pick >= 1 && pick <= ${#verbs[@]} )) || continue
+        idx=$((pick - 1))
+
+        # Split the placeholder into words: "IFACE PID" is two prompts.
+        local -a argv=("$script" "${verbs[$idx]}")
+        if [[ -n "${args[$idx]}" ]]; then
+            for want in ${args[$idx]}; do
+                printf '   %s%s%s: ' "$C_YEL" "$want" "$C_RESET"
+                read -r val
+                [[ -n "$val" ]] && argv+=("$val")
+            done
+        fi
+
+        printf '\n'
+        bash "${argv[@]}"
+        printf '\n   press enter to return\n'; read -r _
+    done
 }
 
 main_menu() {
@@ -382,16 +505,16 @@ wifisting CLI — help
 ────────────────────
 
   Modules are grouped by category. Type the two-digit key to launch.
-  Modules marked [offline] failed to load — check logs/session_*.log.
+  Modules marked [not loaded] are missing or failed to load — check logs/session_*.log.
 
   Keys:
-    [01]-[30]   launch module
+    [NN]        launch module
     [h]         this help
     [c]         clear screen
     [g]         launch the GUI (builddir/wifisting-gui)
     [q]         quit
 
-  Every module has its own menu. Type '0' inside to return here.
+  A module opens its own interface; most take --help for their verbs.
 
   Session log:  logs/session_<date>_<pid>.log
   Project root: ${WIFISTING_ROOT:-$HOME/wifisting}
@@ -406,15 +529,40 @@ HELP
                 fn=$(fn_for_key "$choice")
                 [[ -z "$fn" ]] && fn=$(fn_for_key "$norm")
 
-                if [[ -n "$fn" ]] && declare -F "$fn" >/dev/null 2>&1; then
-                    "$fn"
-                elif [[ -n "$fn" ]]; then
-                    warn "module $choice failed to load — check $SESSION_LOG"
-                    sleep 1
+        # script: rows are run as their own process. A module is a
+        # standalone script, so the menu needs no wrapper function from
+        # it - and declare -F on a script reference always fails, which
+        # is what produced "module N failed to load" for every choice.
+        if [[ "$fn" == script:* ]]; then
+            local script="$MODULES_DIR/${fn#script:}"
+            local mfn=""
+
+            if [[ -f "$script" ]]; then
+                # If the module ships a menu, use it: that is the richer
+                # interface, and running the script bare would only print
+                # its usage. Otherwise run the script, which is the whole
+                # point of it being standalone.
+                mfn=$(grep -oE '^[a-z0-9_]+_menu\(\)' "$script" 2>/dev/null \
+                      | head -1 | sed 's/()//')
+
+                if [[ -n "$mfn" ]] && declare -F "$mfn" >/dev/null 2>&1; then
+                    "$mfn"
                 else
-                    warn "invalid selection: $choice"
-                    sleep 0.5
+                    run_module_menu "$script"
                 fi
+            else
+                warn "module file missing: ${fn#script:}"
+                sleep 1
+            fi
+        elif [[ -n "$fn" ]] && declare -F "$fn" >/dev/null 2>&1; then
+            "$fn"
+        elif [[ -n "$fn" ]]; then
+            warn "module $choice has no runnable entry — check $SESSION_LOG"
+            sleep 1
+        else
+            warn "invalid selection: $choice"
+            sleep 0.5
+        fi
                 ;;
         esac
     done
