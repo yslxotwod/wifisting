@@ -1,0 +1,58 @@
+MODULE	NAME	CATEGORY	VERBS	SELFTEST	HAS_INFO
+00_deps	Dependencies	SYSTEM	--check-versions --distro-info --install-all --install-git --install-missing --install-package --install-pipx --selftest --status-tsv 	1	0
+01_iface	Interface Manager	SYSTEM	--ap-off --ap-on --caps-tsv --context-tsv --kill-conflicts --kill-pid --list-tsv --lock-claim --lock-release --lock-status-tsv --monitor-off --monitor-on --restore-network --selftest --watch-start --watch-status-tsv --watch-stop 	1	0
+02_recon	Wi-Fi Recon	WI-FI	--clear-target --list-targets-tsv --merge-csv --merge-default-out --merge-pcap --merge-sources-tsv --selftest --set-target --start-scan --status-tsv --stop-scan --wpa3-recon 	1	0
+03_attack	WPA/2 Attack	WI-FI	--capture-start --capture-stop --convert --deauth-broadcast --deauth-client --deauth-flood --fragattacks --fragattacks-assess --fragattacks-assess-tsv --list-clients-tsv --pmkid --selftest --status-tsv 	1	0
+04_eviltwin	Evil Twin	WI-FI	--creds-dump --info --launch --list-ap-ifaces-tsv --selftest --ssid-confusion --status-tsv --teardown 	1	1
+05_bt_recon	Bluetooth Recon	BLUETOOTH	--btmon --db-clear --enum-device --enum-services --gatt --list-devices-tsv --list-ifaces-tsv --list-targets-tsv --prep-iface --scan-classic --scan-le --scan-passive --selftest --status-tsv 	1	0
+06_bt_attack	Bluetooth Attack	BLUETOOTH	--l2ping-flood --pin-brute --rfcomm --rfcomm-release --selftest --set-target --spoof --status-tsv 	1	1
+07_arp	ARP / MITM	NETWORK	--ca-generate --ca-instructions --caplet-build --caplet-restart --caplet-show --ca-server-start --ca-server-stop --ca-status --dns-spoof --extract-creds --http-status-tsv --http-stop --http-stream --inject-clear --inject-preset-get --inject-presets --inject-save --inject-show --list-hosts-tsv --list-ifaces-tsv --rules-add --rules-clear --rules-del --rules-list --scan-hosts --selftest --set-iface --set-target --sniff --start-mitm-bettercap --start-mitm-ettercap --status-tsv --stop 	1	0
+08_pmkid_offline	Offline PMKID	WI-FI	--autotune --convert --list-sessions-tsv --purge --quality --resume --run-stage --selftest --show-cracked --start-session --status-tsv 	1	0
+09_wardrive	Wardriving	WI-FI	--check-stack --export-gpx --export-kml --gps-quality-tsv --heatmap --info --list-logs-tsv --pwn-export --pwn-start --pwn-status-tsv --pwn-stop --selftest --set-gps --start --start-gpsd --status-tsv --stop --wigle-upload 	1	1
+10_rogue_dhcp	Rogue DHCP	WI-FI	--leases-tsv --list-ifaces-tsv --log-path --selftest --start --status-tsv --stop --tail-log 	1	0
+11_krack_kr00k	KRACK / Kr00k	WI-FI	--analyze --caps-tsv --install-scripts --list-pcaps-tsv --passive-scan --probe --run-attack --selftest --status-tsv --vendor-hint 	1	0
+12_hid_injection	HID Injection	PHYSICAL	--check-deps --detect-tsv --info --install-logitacker --install-nrf-research --list-payloads-tsv --mj-replay --mj-scan --mj-sniff --payload-name --selftest --status-tsv --write-shim 	1	1
+13_802.1x_relay	Enterprise Kit	NETWORK	--auto-crack --cert-info-tsv --check-deps --detect-method --eap-options-save --eap-options-tsv --gen-certs --list-ifaces-tsv --parse-creds --recon-tsv --rogue-radius-creds --rogue-radius-init --rogue-radius-save --rogue-radius-start --rogue-radius-stop --rogue-radius-tsv --selftest --start --status-tsv --stop --wpa3-save --wpa3-tsv 	1	0
+14_wifi_ids	Wireless IDS	SCANNERS	--build-baseline --clear-alerts --evade-plan --evade-run --evade-save --evade-tsv --list-alerts-json --list-alerts-tsv --monitor-start --monitor-status --monitor-stop --selftest --status-tsv 	1	0
+15_wifi_cve_scan	Wi-Fi CVE Kit	SCANNERS	--fingerprint-bssid --run-cve --selftest --status-tsv 	1	0
+16_bt_cve_scan	Bluetooth CVE Kit	SCANNERS	--run-cve --selftest --status-tsv 	1	0
+17_wps_attack	WPS Attack	WI-FI	--harvest --lockout-bypass --log --offline-pixie --pin-candidates --restore-mac --results-tsv --scan-tsv --selftest --start --status-tsv --stop 	1	0
+18_capture_analysis	Capture Analysis	ANALYSIS	--analyze-tsv --benchmark --check-tools --convert --convert-formats-tsv --convert-sources-tsv --correlate --crack --crack-status --crack-stop --extract --filter --filter-bssid --filter-ssid --list-aps-tsv --list-devices --list-hashes-tsv --list-pcaps-tsv --merge --selftest 	1	0
+19_wordlist_manager	Wordlist Manager	ANALYSIS	--all --allow-ambiguous --bssid --compose --compose-gz --count --delete --download --gen-isp-tsv --gen-mask-tsv --gen-osk-key-tsv --gen-sha1-serial-tsv --group --infer-pattern-tsv --install --list-tsv --meta --min-digits --min-upper --no-digits --patterns-tsv --rules-tsv --seclists-clone --seclists-list --seclists-status --seclists-update --selftest --serial --ssid --status-tsv --symbols 	1	0
+20_karma	Karma	WI-FI	--assoc-attack --harvest --info --list-ifaces-tsv --log --mana-loud --probes --selftest --start --status-tsv --stop --whitelist-add --whitelist-clear --whitelist-list 	1	1
+21_beacon_flood	Wi-Fi DoS / Flood	WI-FI	--auth-flood --generate --generate-from --list-ssids-tsv --log --michael-shutdown --selftest --set-band --set-enc --set-mode --start --status-tsv --stop --watch-clients --watch-hits-tsv --watch-reset --wids-confuse 	1	0
+22_wifi_direct	Wi-Fi Direct / P2P	WI-FI	--analyze --capture-start --capture-stop --info --list-devices-tsv --passive-scan --selftest --spoof-go-neg --status-tsv --wpa-find 	1	1
+23_captive_portal_builder	Portal Builder	WI-FI	--delete --install --list-portals-tsv --list-templates-tsv --render --selftest --status-tsv 	1	0
+24_bt_mesh	BLE Mesh	BLUETOOTH	--analyze-beacons --capture-prov --check-deps --extract-keys --info --list-sessions-tsv --parse-beacon --prov-decrypt --prov-ecdh --prov-encrypt --prov-keygen --prov-plan --prov-selftest --prov-session --prov-status-tsv --selftest --sniff-beacons --start-capture --status-tsv 	1	1
+25_rf_spectrum	RF Spectrum	SCANNERS	--channel-occupancy --check-tools --gain-sweep --info --list-scans-tsv --peaks --raw-capture --selftest --spectrogram --status-tsv --waterfall --wifi-scan 	1	1
+26_zigbee	Zigbee / 802.15.4	SCANNERS	--check-tools --extract-keys --info --list-captures-tsv --list-keys-tsv --matter-tlv --matter-tlv-build --matter-verify-chain --ota-downgrade --replay --scan-channels --selftest --sniff --status-tsv --thread-br-tsv --thread-discover --thread-status-tsv --verify-key 	1	1
+27b_fw_update_audit	27b_fw_update_audit	UNCATEGORISED	--detect-updates --inject-canary --selftest --start-poc-mitm --stop-poc-mitm --verify-channel 	1	0
+27_firmware_iot	Firmware / IoT	SCANNERS	--arch --check-tools --cve-heuristic --cve-scan --entropy --extract --firmwalker --full --identify --import --info --list-analyses-tsv --list-binaries --list-samples-tsv --patterns --selftest --status-tsv --strings 	1	1
+28_live_traffic	28_live_traffic	UNCATEGORISED	--clear-filter --clear-psk --list-ifaces-tsv --lock-channel --psk-info --rotate-list --rotate-start --rotate-stop --save-pcap --selftest --set-bssid-filter --set-filter --set-psk --status-tsv --stop --stream 	1	0
+29_killchain	Killchain	AUTOMATION	--pause --resolve --resume --run --run-multi --selftest 	1	0
+30_fingerprint	Fingerprint	ANALYSIS	--correlate-tsv --export --export-html --get-channel --history-tsv --hop-start --hop-status-tsv --hop-stop --init-db --list-clients-tsv --mac-history --probes-tsv --probe-tsv --prune --rates-tsv --selftest --set-channel --start --status-tsv --stop 	1	0
+31_remote_node	Remote Node	AUTOMATION	--add-node --attack-dispatch --attack-stop --bulk-probe --crack-queue-tsv --crack-status-tsv --crack-submit --honeypot-clients-tsv --honeypot-creds-tsv --honeypot-fleet-tsv --honeypot-mode --list-nodes-tsv --nexmon-install --node-health-tsv --node-info-tsv --probe-node --remove-node --remove-offline --rules-get --rules-set --selftest --spool-drain --spool-list-tsv --spool-peek --start-stream --status-tsv --stop-all-streams --stop-stream --stream-status-tsv --whitelist-get --whitelist-set 	1	0
+32_resolver_poison	Resolver Poison	NETWORK	--check-tools --list-ifaces-tsv --log --mitm6-log --mitm6-start --mitm6-stop --poison-relay --relay-log --relay-start --relay-stop --selftest --sessions-tsv --start --status-tsv --stop 	1	0
+34_pmf_bypass	PMF Bypass	WI-FI	--analyze --decode-caps --info --list-tsv --plan --scan --selftest --status-tsv --test 	1	1
+35_wifi6_attacks	Wi-Fi 6 Attacks	WI-FI	--analyze --colors --decode-he-op --info --list-tsv --plan --selftest --status-tsv 	1	1
+36_ble_tracker_hunt	Tracker Hunt	BLUETOOTH	--decode --follow-check --info --scan --selftest --service-signatures --signatures --status-tsv 	1	1
+37_bt_classic_ssp	Classic SSP	BLUETOOTH	--analyze --capture --info --list-tsv --matrix --model --selftest --status-tsv 	1	1
+38_ble_adv_forge	Adv Forge	BLUETOOTH	--eddystone-uid --eddystone-url --fastpair --ibeacon --info --raw --selftest --status-tsv --templates-tsv --transmit --validate 	1	1
+39_ble_fuzz	BLE Fuzzing	BLUETOOTH	--boundary --emit --info --mutate --replay --selftest --status-tsv --strategies-tsv 	1	1
+40_wifi_csi	Wi-Fi CSI	PHYSICAL	--analyze --formats-tsv --info --parse --selftest --status-tsv 	1	1
+41_wifi_geolocate	Geolocation	ANALYSIS	--db --estimate --from-csv --help-db --info --map-url --rssi-to-m --selftest --status-tsv 	1	1
+42_subghz	Sub-GHz RF	PHYSICAL	--bands-tsv --decode-pulses --duration --encode-pulses --gain --info --parse-sweep --raw --rssi-scan --selftest --status-tsv 	1	1
+43_nfc_rfid	NFC / RFID	PHYSICAL	--identify --info --mifare-sectors --ndef-decode --ndef-encode --read-tag --selftest --status-tsv --tag-types-tsv 	1	1
+44_lora_loraWAN	LoRa / LoRaWAN	PHYSICAL	--build --decode --derive --info --message-types-tsv --mic --receive --selftest --status-tsv 	1	1
+45_drone_remote_id	Drone Remote ID	PHYSICAL	--bt-payload --decode --decode24 --encode --encode-tsv --enums-tsv --info --layout24 --message-types-tsv --receive --roundtrip --scan-log --selftest --status-tsv 	1	1
+46_public_wifi_audit	Public Wi-Fi Audit	ANALYSIS	--audit --info --rules-tsv --scan --selftest --show --status-tsv --summary 	1	1
+47_wpa3_attack	WPA3 / SAE Attack	WI-FI	--capture --check-deps --classify-aki --downgrade --dragonblood --info --sae-brute --selftest --status-tsv --transition-tsv 	1	1
+48_wep_attack	WEP Attacks	WI-FI	--arpreplay --caffelatte --chopchop --crack --fakeauth --fragment --hirte --info --key-forms --modes-tsv --networks-tsv --prga --selftest --status-tsv 	1	1
+49_usb_mitm	USB Ethernet MitM	PHYSICAL	--check-deps --claim-route-tsv --gadget-down --gadget-status-tsv --gadget-up --responder-start --responder-status-tsv --responder-stop --selftest --siphon-clear --siphon-tsv 	1	1
+50_router_lan	Router LAN Attacks	NETWORK	(no usage text)	1	1
+51_router_web	Router Web UI	NETWORK	(no usage text)	1	1
+52_router_console	Router Console	PHYSICAL	(no usage text)	1	1
+53_jamming	Jamming	WI-FI	(no usage text)	1	1
+54_client_isolation	Client Isolation	WI-FI	(no usage text)	1	1
+55_ssid_overflow	SSID Overflow	WI-FI	(no usage text)	1	1
+57_thread	Thread	WIRELESS	(no usage text)	1	1

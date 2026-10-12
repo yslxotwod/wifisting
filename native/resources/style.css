@@ -1,0 +1,1913 @@
+window {
+    background: rgba(0, 0, 0, 0);
+    color: #ededf0;
+    font-family: "Neuropol", "JetBrains Mono", "DejaVu Sans Mono", monospace;
+}
+
+/* ---------- background GIF ---------- */
+
+.app-background {
+    background: #000000;
+}
+
+/* ---------- headerbar ---------- */
+
+headerbar {
+    min-height: 46px;
+    padding: 3px 7px;
+    background: rgba(3, 4, 6, 0.55);
+    color: #f8f8fa;
+    border-bottom: 1px solid #8f1329;
+    box-shadow: none;
+}
+
+.header-title {
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+/* ---------- buttons ---------- */
+
+button {
+    color: #e8e8eb;
+    background: rgba(20, 21, 26, 0.75);
+    border: 1px solid #343740;
+    border-radius: 5px;
+    padding: 5px 8px;
+    box-shadow: none;
+}
+
+button:hover {
+    color: #ffffff;
+    background: rgba(45, 10, 18, 0.80);
+    border-color: #f0183d;
+}
+
+button:active,
+button:checked {
+    background: #a90828;
+    border-color: #ff3152;
+    color: #ffffff;
+}
+
+button.accent {
+    background: #bd092d;
+    border-color: #ff3152;
+    color: #ffffff;
+}
+
+button.accent:hover {
+    background: #e10d37;
+    border-color: #ff6179;
+}
+
+button.flat {
+    min-width: 20px;
+    min-height: 20px;
+    padding: 2px;
+    background: transparent;
+    border-color: transparent;
+}
+
+/* ---------- header status ---------- */
+
+.toolbar-item {
+    margin: 0 5px;
+}
+
+.toolbar-value {
+    color: #ff2147;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.toolbar-caption {
+    color: #7f838e;
+    font-size: 9px;
+}
+
+/* ---------- sidebar ---------- */
+
+.sidebar {
+    background: rgba(3, 4, 6, 0.55);
+    border-right: 1px solid #333640;
+}
+
+.sidebar-title {
+    color: #ff2147;
+    font-size: 13px;
+    font-weight: bold;
+    padding: 8px 9px 3px;
+}
+
+.sidebar-section {
+    color: #777c87;
+    font-size: 9px;
+    font-weight: bold;
+    padding: 8px 9px 2px;
+}
+
+.sidebar button {
+    min-height: 28px;
+    margin: 1px 5px;
+    padding: 4px 6px;
+    background: transparent;
+    border-color: transparent;
+    font-size: 11px;
+}
+
+.sidebar button:hover {
+    background: rgba(74, 7, 21, 0.60);
+    border-color: #9f122c;
+}
+
+/* ---------- dashboard ---------- */
+
+.dashboard {
+    background: rgba(3, 4, 6, 0.35);
+    padding: 13px;
+}
+
+.page-title {
+    color: #ffffff;
+    font-size: 19px;
+    font-weight: bold;
+}
+
+.page-subtitle {
+    color: #858a95;
+    font-size: 11px;
+}
+
+.module-card {
+    min-width: 138px;
+    min-height: 78px;
+    padding: 10px;
+    background: rgba(13, 15, 19, 0.75);
+    border: 1px solid #30333b;
+    border-radius: 7px;
+}
+
+.module-card:hover {
+    background: rgba(55, 7, 18, 0.85);
+    border-color: #f0183d;
+}
+
+.module-card-title {
+    color: #f5f5f7;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.module-card-category {
+    color: #ff2147;
+    font-size: 9px;
+    font-weight: bold;
+}
+
+.module-description {
+    color: #8a8f99;
+    font-size: 9px;
+    line-height: 1.3;
+    opacity: 0;
+    transition: opacity 150ms ease;
+}
+
+.module-card:hover .module-description {
+    opacity: 1;
+}
+
+/* ---------- target panel ---------- */
+
+.panel {
+    background: rgba(3, 4, 6, 0.55);
+    border-left: 1px solid #333640;
+}
+
+.panel-title {
+    color: #ff2147;
+    font-weight: bold;
+    padding: 9px;
+}
+
+.target-empty {
+    color: #6f737d;
+    font-size: 10px;
+    padding: 12px;
+}
+
+.radar {
+    background: rgba(2, 3, 5, 0.65);
+    border: 1px solid #a20d29;
+    border-radius: 999px;
+    color: #e20d38;
+    font-size: 45px;
+    margin: 13px;
+    padding: 21px;
+}
+
+/* ---------- target panel captions + values ---------- */
+
+.target-caption {
+    color: #e7e7e7;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 0.6px;
+}
+
+.target-value {
+    color: #ffd60a;
+    font-family: "JetBrains Mono", "DejaVu Sans Mono", monospace;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* ---------- event drawer ---------- */
+
+.event-drawer {
+    background: rgba(3, 4, 6, 0.55);
+    border-top: 1px solid #393c45;
+}
+
+.event-title {
+    color: #ff2147;
+    font-weight: bold;
+    padding: 6px 9px;
+}
+
+/* ---------- text views (all monospace output surfaces) ---------- */
+
+/* GTK4 draws a GtkTextView's interior through an internal "text"
+   subnode. Setting background-color on the widget alone doesn't reach
+   it, so without hitting "> text" the default theme's light gray
+   leaks through and every text view becomes a pale rectangle. */
+textview,
+.event-view {
+    background-color: rgba(2, 3, 5, 0.75);
+    color: #b9bdc5;
+    /* Roomier than it was: 6px made dense tool output hard to scan, and the
+       pane had no edge of its own so it read as part of the card behind it. */
+    padding: 10px 12px;
+    border: 1px solid rgba(120, 132, 150, 0.16);
+    border-radius: 7px;
+}
+
+/* A visible caret and selection: the default is near-invisible on this
+   background, which makes the panes feel non-interactive. */
+textview > text selection,
+.event-view > text selection {
+    background-color: rgba(77, 158, 245, 0.35);
+    color: #f0f4f8;
+}
+
+textview > text cursor,
+.event-view > text cursor {
+    background-color: #8fa4bd;
+}
+
+textview > text,
+.event-view > text {
+    background-color: transparent;
+}
+
+.event-view {
+    font-family: "JetBrains Mono", "DejaVu Sans Mono", monospace;
+    font-size: 10px;
+}
+
+/* Scrolled viewports paint no background of their own — let the text
+   view's own border-radius be the only visible edge. */
+scrolledwindow > viewport {
+    background-color: transparent;
+}
+
+/* ---------- notebook ---------- */
+
+notebook {
+    background: rgba(3, 4, 6, 0.35);
+}
+
+notebook > header {
+    background: rgba(3, 4, 6, 0.55);
+    border-bottom: 1px solid #333640;
+}
+
+notebook > header tabs tab {
+    color: #9296a0;
+    background: transparent;
+    border: 0;
+    padding: 5px 8px;
+}
+
+notebook > header tabs tab:checked {
+    color: #ffffff;
+    background: rgba(23, 24, 29, 0.75);
+    box-shadow: inset 0 -2px #ff1744;
+}
+
+.tab-label {
+    min-width: 100px;
+}
+
+.tab-close {
+    color: #888d97;
+}
+
+.tab-close:hover {
+    color: #ffffff;
+    background: #bc0b2e;
+}
+
+/* ---------- placeholder ---------- */
+
+.module-placeholder {
+    background: rgba(3, 4, 6, 0.35);
+    padding: 22px;
+}
+
+.placeholder-icon {
+    color: #e20d38;
+}
+
+.placeholder-text {
+    color: #80858f;
+    font-size: 11px;
+}
+
+/* ---------- paned separators ---------- */
+
+paned > separator {
+    min-width: 4px;
+    min-height: 4px;
+    background: #17191e;
+}
+
+paned > separator:hover {
+    background: #d50c34;
+}
+
+terminal {
+    padding: 5px;
+}
+
+/* ---------- dependency manager ---------- */
+
+.dependency-page {
+    background: rgba(3, 4, 6, 0.35);
+    padding: 16px;
+}
+
+.dependency-summary {
+    color: #a6aab3;
+    font-size: 10px;
+    padding: 2px 3px 6px;
+}
+
+.dependency-page searchentry {
+    min-height: 30px;
+    color: #f1f1f3;
+    background: rgba(8, 9, 12, 0.85);
+    border: 1px solid #343740;
+    border-radius: 5px;
+}
+
+.dependency-page searchentry:focus-within {
+    border-color: #ff1744;
+    box-shadow: 0 0 0 1px rgba(255, 23, 68, 0.22);
+}
+
+.dependency-page list {
+    color: #ededf0;
+    background: rgba(6, 7, 10, 0.78);
+    border: 1px solid #292c34;
+    border-radius: 6px;
+}
+
+.dependency-page list > row {
+    min-height: 47px;
+    padding: 7px 9px;
+    background: rgba(9, 10, 14, 0.78);
+    border-bottom: 1px solid #24272e;
+}
+
+.dependency-page list > row:hover {
+    background: rgba(39, 7, 15, 0.82);
+}
+
+.dependency-name {
+    color: #f5f5f7;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.dependency-package {
+    color: #767b85;
+    font-family: "JetBrains Mono", "DejaVu Sans Mono", monospace;
+    font-size: 9px;
+}
+
+.dependency-group {
+    min-width: 62px;
+    color: #ff2147;
+    font-size: 9px;
+    font-weight: bold;
+}
+
+.dependency-status {
+    min-width: 68px;
+    padding: 4px 7px;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: bold;
+}
+
+.dependency-status.installed {
+    color: #62e690;
+    background: rgba(13, 77, 38, 0.55);
+    border: 1px solid #247d45;
+}
+
+.dependency-status.missing {
+    color: #ff526f;
+    background: rgba(91, 7, 25, 0.62);
+    border: 1px solid #ad1533;
+}
+
+.dependency-install {
+    min-width: 66px;
+}
+
+.dependency-install:disabled {
+    color: #5f636c;
+    background: rgba(12, 13, 16, 0.65);
+    border-color: #25272d;
+}
+
+/* ---------- CVE browser ---------- */
+
+.cve-category {
+    color: #ff2147;
+    font-size: 9px;
+    font-weight: bold;
+}
+
+.cve-hw {
+    color: #767b85;
+    font-family: "JetBrains Mono", "DejaVu Sans Mono", monospace;
+    font-size: 9px;
+}
+
+.cve-severity {
+    min-width: 62px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: bold;
+}
+
+.cve-severity.cve-sev-critical {
+    color: #ff526f;
+    background: rgba(91, 7, 25, 0.62);
+    border: 1px solid #ff2147;
+}
+
+.cve-severity.cve-sev-high {
+    color: #ffb020;
+    background: rgba(91, 53, 7, 0.55);
+    border: 1px solid #ffb020;
+}
+
+.cve-severity.cve-sev-med {
+    color: #6fb3ff;
+    background: rgba(7, 46, 91, 0.55);
+    border: 1px solid #2f7dd6;
+}
+
+.cve-severity.cve-sev-low {
+    color: #62e690;
+    background: rgba(13, 77, 38, 0.55);
+    border: 1px solid #247d45;
+}
+
+/* ---------- module page framework ---------- */
+
+.module-page {
+    background: rgba(3, 4, 6, 0.35);
+}
+
+.module-header {
+    background: rgba(3, 4, 6, 0.55);
+    border-bottom: 1px solid #333640;
+    padding: 8px 12px;
+}
+
+.module-header-icon {
+    color: #ff2147;
+}
+
+.module-header-title {
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.module-header-category {
+    color: #ff2147;
+    font-size: 9px;
+    font-weight: bold;
+    min-width: 80px;
+}
+
+.status-pill {
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: bold;
+    min-width: 60px;
+}
+
+.status-pill.status-idle {
+    color: #777c87;
+    background: rgba(49, 52, 59, 0.75);
+    border: 1px solid #31343b;
+}
+
+.status-pill.status-running {
+    color: #ff0000;
+    background: rgba(74, 7, 21, 0.75);
+    border: 1px solid #ff0000;
+}
+
+.status-pill.status-error {
+    color: #ffffff;
+    background: #ff0000;
+    border: 1px solid #ff3152;
+}
+
+.status-pill.status-success {
+    color: #62e690;
+    background: rgba(13, 77, 38, 0.55);
+    border: 1px solid #247d45;
+}
+
+.module-submenu-scroll {
+    background: rgba(3, 4, 6, 0.55);
+    border-right: 1px solid #333640;
+}
+
+.module-submenu {
+    background: transparent;
+}
+
+.module-submenu-row {
+    min-height: 38px;
+    padding: 8px 12px;
+    margin: 2px 6px;
+    border-radius: 4px;
+    background: transparent;
+    border: 1px solid transparent;
+}
+
+.module-submenu-row:hover {
+    background: rgba(74, 7, 21, 0.60);
+    border-color: #9f122c;
+}
+
+.module-submenu-row:selected {
+    background: rgba(173, 8, 46, 0.68);
+    border-color: #ff2147;
+}
+
+.module-submenu-row:selected .module-submenu-label {
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.module-submenu-icon {
+    color: #888d97;
+}
+
+.module-submenu-row:selected .module-submenu-icon {
+    color: #ff2147;
+}
+
+.module-submenu-label {
+    color: #9296a0;
+    font-size: 13px;
+}
+
+.module-stack {
+    background: rgba(3, 4, 6, 0.35);
+    padding: 16px;
+}
+
+.module-stack-page {
+    background: transparent;
+}
+
+/* ---------- dashboard tile internals ---------- */
+
+.module-card-inner {
+    padding: 2px;
+}
+
+.module-card-toprow {
+    min-height: 10px;
+}
+
+.module-card-icon {
+    color: #ff2147;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+.module-card:hover .module-card-icon {
+    color: #ffffff;
+}
+
+/* ---------- section cards ---------- */
+
+/* Summary card accents — a coloured left bar, a caption and a large value.
+   Used by the channel occupancy page. */
+.stat-accent {
+    background: #4d9ef5;
+    border-radius: 2px;
+    min-width: 4px;
+}
+.stat-value {
+    font-size: 19px;
+    font-weight: 700;
+    color: #f0f4f8;
+}
+.theme-matrix .stat-accent { background: #00ff41; }
+.theme-matrix .stat-value  { color: #00ff41; }
+.theme-ghost  .stat-accent { background: #007bff; }
+
+
+/* Bar chart above each Stats tab. Same surface treatment as a card, so it
+   reads as a summary panel rather than floating loose above the rows. */
+.stats-chart {
+    background: rgba(13, 15, 19, 0.55);
+    border: 1px solid rgba(120, 132, 150, 0.16);
+    border-radius: 7px;
+    padding: 8px 10px;
+    margin-bottom: 2px;
+}
+.theme-matrix .stats-chart { border-color: rgba(0, 255, 65, 0.18); }
+.theme-ghost  .stats-chart { border-color: rgba(0, 123, 255, 0.20); }
+
+.section-card {
+    background: rgba(13, 15, 19, 0.72);
+    border: 1px solid #30333b;
+    border-radius: 7px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.section-title {
+    color: #ff2147;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.section-body {
+    color: #e7e7e7;
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+/* ---------- tables ---------- */
+
+.module-table {
+    color: #ededf0;
+    background: rgba(6, 7, 10, 0.78);
+    border: 1px solid #292c34;
+    border-radius: 6px;
+}
+
+.module-table header {
+    background: rgba(20, 21, 26, 0.78);
+    border-bottom: 1px solid #ff2147;
+}
+
+.module-table header > * {
+    color: #ff2147;
+    font-size: 9px;
+    font-weight: bold;
+    padding: 6px 8px;
+}
+
+.module-table row:nth-child(even) {
+    background: rgba(13, 15, 19, 0.78);
+}
+
+.module-table row:nth-child(odd) {
+    background: rgba(17, 19, 24, 0.78);
+}
+
+.module-table row:hover {
+    background: rgba(39, 7, 15, 0.82);
+}
+
+.module-table cell {
+    padding: 6px 8px;
+    font-size: 10px;
+    font-family: "JetBrains Mono", "DejaVu Sans Mono", monospace;
+}
+
+/* ---------- form controls ---------- */
+
+.module-page entry,
+.module-page spinbutton,
+.module-page combobox,
+.module-page switch {
+    color: #f1f1f3;
+    background: rgba(8, 9, 12, 0.85);
+    border: 1px solid #343740;
+    border-radius: 5px;
+    padding: 6px 8px;
+}
+
+.module-page entry:focus,
+.module-page spinbutton:focus,
+.module-page combobox:focus {
+    border-color: #ff1744;
+    box-shadow: 0 0 0 1px rgba(255, 23, 68, 0.22);
+}
+
+.module-page button {
+    font-size: 11px;
+}
+
+/* ---------- command palette ---------- */
+
+.palette-label {
+    color: #e7e7e7;
+    font-size: 11px;
+    padding: 6px 4px;
+}
+
+.palette-label:hover {
+    color: #ffffff;
+}
+
+/* ---------- toast ---------- */
+
+.toast-box {
+    background: rgba(3, 4, 6, 0.90);
+    border: 1px solid #ff2147;
+    border-radius: 6px;
+    padding: 8px 14px;
+    box-shadow: 0 0 0 1px rgba(255, 23, 68, 0.25);
+}
+
+.toast-label {
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+/* ---------- splash progress ---------- */
+
+.splash-progress {
+    color: #ff2147;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.8px;
+}
+
+/* ---------- polish round ---------- */
+
+/* header status values in amber */
+.toolbar-value {
+    color: #ffd60a;
+}
+
+/* slightly bigger module names in the sidebar */
+.sidebar button {
+    font-size: 13px;
+}
+
+/* centered, larger category header */
+.sidebar-section {
+    font-size: 11px;
+    letter-spacing: 1.2px;
+    margin-top: 10px;
+    margin-bottom: 2px;
+}
+
+/* bigger splash label */
+.splash-progress {
+    font-size: 16px;
+    letter-spacing: 1.2px;
+}
+
+/* red loading bar under the splash */
+progressbar.splash-bar > trough {
+    background: rgba(2, 3, 5, 0.85);
+    border: 1px solid #a20d29;
+    border-radius: 4px;
+    min-height: 8px;
+}
+
+progressbar.splash-bar > trough > progress {
+    background: #ff2147;
+    border-radius: 3px;
+    min-height: 8px;
+}
+
+/* ---------- event drawer severity toggles ---------- */
+
+.evt-toggle {
+    min-width: 0;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: bold;
+    color: #8a8f99;
+}
+
+.evt-toggle:checked {
+    color: #ffffff;
+    background: rgba(173, 8, 46, 0.75);
+    border-color: #ff2147;
+}
+
+/* ---------- target panel quick-actions ---------- */
+
+.target-jump {
+    min-width: 0;
+    padding: 4px 10px;
+    font-size: 10px;
+    font-weight: bold;
+    color: #ffd60a;
+    border: 1px solid #ffd60a;
+    background: transparent;
+}
+
+.target-jump:hover {
+    background: rgba(255, 214, 10, 0.15);
+    color: #ffffff;
+}
+
+/* ---------- palette section headers ---------- */
+
+.palette-section {
+    color: #ff2147;
+    font-size: 9px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    padding: 4px 0;
+}
+
+/* wider tabs so live titles are readable */
+notebook > header tabs tab {
+    min-width: 160px;
+}
+
+/* ---------- help page body text ---------- */
+
+.help-text {
+    font-size: 13px;
+    line-height: 1.55;
+    color: #d0d4dc;
+    padding: 4px 0;
+}
+
+/* headers within help sections */
+.help-text:not(:first-child) {
+    margin-top: 8px;
+}
+
+/* ==== ambient animations ==== */
+
+/* pulsing status pill for running modules */
+.status-running { }
+
+/* sidebar hover glow */
+.sidebar button {
+    transition: box-shadow 120ms ease-out,
+                background-color 120ms ease-out;
+}
+.sidebar button:hover {
+    box-shadow: inset 0 0 12px rgba(255,59,59,0.28);
+    background-color: rgba(255,59,59,0.06);
+}
+
+/* cursor feedback */
+
+/* toast fade-in */
+.toast-box { }
+/* event drawer smooth scrollbar */
+.event-view scrollbar {
+    transition: opacity 200ms;
+}
+
+/* ==== popover theming (right-click menus, palette) ==== */
+
+popover,
+.popover {
+    background: transparent;
+}
+
+popover > contents {
+    background-color: rgba(12, 8, 10, 0.97);
+    border: 1px solid rgba(255, 59, 59, 0.45);
+    border-radius: 8px;
+    padding: 6px;
+    box-shadow: 0 6px 28px rgba(255, 59, 59, 0.35),
+                0 0 0 1px rgba(255, 59, 59, 0.10);
+}
+
+popover button,
+popover > contents button {
+    background-color: transparent;
+    background-image: none;
+    border: none;
+    border-radius: 5px;
+    color: #d8d8d8;
+    padding: 7px 14px;
+    margin: 1px 0;
+    transition: background-color 100ms ease-out,
+                color 100ms ease-out;
+    box-shadow: none;
+}
+
+popover button:hover {
+    background-color: rgba(255, 59, 59, 0.22);
+    color: #ff8080;
+}
+
+popover button:active,
+popover button:checked {
+    background-color: rgba(255, 59, 59, 0.38);
+    color: #ffb0b0;
+}
+
+popover separator {
+    background-color: rgba(255, 59, 59, 0.25);
+    min-height: 1px;
+    margin: 4px 2px;
+}
+
+popover label {
+    color: #cfcfcf;
+}
+
+popover entry,
+popover searchentry {
+    background-color: rgba(255, 59, 59, 0.08);
+    border: 1px solid rgba(255, 59, 59, 0.35);
+    border-radius: 5px;
+    color: #eaeaea;
+    caret-color: #ff3b3b;
+}
+
+popover entry:focus,
+popover searchentry:focus {
+    border-color: #ff3b3b;
+    box-shadow: 0 0 0 2px rgba(255, 59, 59, 0.20);
+}
+
+.target-value-ok {
+    color: #62e690;
+    font-weight: bold;
+}
+
+/* ==== red glow borders on nav buttons ==== */
+
+.sidebar button {
+    border: 1px solid rgba(255, 59, 59, 0.35);
+    border-radius: 6px;
+    margin: 2px 6px;
+    box-shadow: 0 0 0 0 rgba(255, 59, 59, 0),
+                inset 0 0 0 0 rgba(255, 59, 59, 0);
+    transition: border-color 150ms ease-out,
+                box-shadow 150ms ease-out,
+                background-color 150ms ease-out;
+}
+
+.sidebar button:hover {
+    border-color: rgba(255, 59, 59, 0.85);
+    box-shadow: 0 0 10px 1px rgba(255, 59, 59, 0.45),
+                inset 0 0 12px rgba(255, 59, 59, 0.18);
+}
+
+.sidebar button:active,
+.sidebar button:checked {
+    border-color: #ff3b3b;
+    box-shadow: 0 0 14px 2px rgba(255, 59, 59, 0.55),
+                inset 0 0 16px rgba(255, 59, 59, 0.25);
+}
+
+/* Header bar toggles ("Modules", "Target", "Events") */
+headerbar togglebutton,
+headerbar button.toggle {
+    border: 1px solid rgba(255, 59, 59, 0.40);
+    border-radius: 6px;
+    box-shadow: 0 0 6px 0 rgba(255, 59, 59, 0.25);
+    transition: border-color 150ms ease-out,
+                box-shadow 150ms ease-out,
+                color 150ms ease-out;
+}
+
+headerbar togglebutton:hover,
+headerbar button.toggle:hover {
+    border-color: rgba(255, 59, 59, 0.90);
+    box-shadow: 0 0 12px 1px rgba(255, 59, 59, 0.55);
+    color: #ff8080;
+}
+
+headerbar togglebutton:checked,
+headerbar button.toggle:checked {
+    border-color: #ff3b3b;
+    box-shadow: 0 0 16px 2px rgba(255, 59, 59, 0.65),
+                inset 0 0 10px rgba(255, 59, 59, 0.20);
+    color: #ffb0b0;
+}
+
+.target-badge {
+    color: #555;
+    margin-right: 4px;
+    transition: color 150ms ease-out;
+}
+
+.target-badge.target-badge-live {
+    color: #ff3b3b;
+    text-shadow: 0 0 6px rgba(255, 59, 59, 0.75);
+}
+
+.target-chip {
+    background-color: rgba(255, 59, 59, 0.08);
+    border: 1px solid rgba(255, 59, 59, 0.30);
+    border-radius: 12px;
+    color: #d8d8d8;
+    padding: 3px 10px;
+    margin: 1px 0;
+    font-size: 11px;
+    transition: background-color 120ms, border-color 120ms;
+}
+
+.target-chip:hover {
+    background-color: rgba(255, 59, 59, 0.22);
+    border-color: rgba(255, 59, 59, 0.75);
+    color: #ffb0b0;
+}
+
+/* ==== new toast stack ==== */
+
+.toast {
+    background-color: rgba(12, 8, 10, 0.97);
+    border: 1px solid rgba(255, 59, 59, 0.55);
+    border-radius: 8px;
+    padding: 10px 12px;
+    min-width: 320px;
+    box-shadow: 0 4px 22px rgba(255, 59, 59, 0.32),
+                0 0 0 1px rgba(255, 59, 59, 0.12);
+}
+
+.toast-icon {
+    color: #ff3b3b;
+    opacity: 0.92;
+}
+
+.toast-title {
+    font-family: "Neuropol", "Orbitron", "Bank Gothic",
+                 "Michroma", "Adwaita Sans", sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: #ff8080;
+}
+
+.toast-content {
+    color: #e2e2e2;
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.toast-close {
+    background: transparent;
+    background-image: none;
+    border: none;
+    padding: 0;
+    min-width: 20px;
+    min-height: 20px;
+    box-shadow: none;
+    color: #666;
+    border-radius: 4px;
+    transition: color 120ms, background-color 120ms;
+}
+
+.toast-close:hover {
+    color: #ff5252;
+    background-color: rgba(255, 59, 59, 0.15);
+}
+
+.toast-close-glyph {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* severity variants */
+.toast-success { border-color: rgba(98, 230, 144, 0.65); }
+.toast-success .toast-icon { color: #62e690; }
+.toast-success .toast-title { color: #62e690; }
+.toast-success { box-shadow: 0 4px 22px rgba(98, 230, 144, 0.28),
+                             0 0 0 1px rgba(98, 230, 144, 0.10); }
+
+.toast-warn { border-color: rgba(255, 214, 10, 0.65); }
+.toast-warn .toast-icon { color: #ffd60a; }
+.toast-warn .toast-title { color: #ffd60a; }
+.toast-warn { box-shadow: 0 4px 22px rgba(255, 214, 10, 0.28),
+                          0 0 0 1px rgba(255, 214, 10, 0.10); }
+
+.toast-error { border-color: rgba(255, 59, 59, 0.95); }
+.toast-error { box-shadow: 0 4px 28px rgba(255, 59, 59, 0.50),
+                           0 0 0 1px rgba(255, 59, 59, 0.25); }
+.toast-error .toast-icon { color: #ff3b3b; }
+
+.toast-target { border-color: rgba(255, 130, 200, 0.65); }
+.toast-target .toast-icon { color: #ff82c8; }
+.toast-target .toast-title { color: #ff82c8; }
+.toast-target { box-shadow: 0 4px 22px rgba(255, 130, 200, 0.32),
+                            0 0 0 1px rgba(255, 130, 200, 0.12); }
+
+/* ==== notifications popover ==== */
+
+/* No chrome on the popover node itself. GTK4 draws a popover as an outer
+   "popover" node wrapping a "contents" node, and the theme styles the inner
+   one (popover.background > contents) with its own background, border and
+   radius. Styling the outer node as well paints a second, larger box around
+   the real one. The theme's box is the popover; everything below styles only
+   what goes inside it. */
+
+.notif-title {
+    font-family: "Neuropol", "Orbitron", "Bank Gothic",
+                 "Michroma", "Adwaita Sans", sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: #ff8080;
+}
+
+.notif-summary {
+    color: #8a8a8a;
+    font-size: 11px;
+    padding: 0 2px 4px 2px;
+}
+
+.notif-clear {
+    background: transparent;
+    background-image: none;
+    border: 1px solid rgba(255, 59, 59, 0.35);
+    box-shadow: none;
+    color: #b0b0b0;
+    font-size: 11px;
+    padding: 2px 8px;
+    min-height: 22px;
+    border-radius: 4px;
+}
+
+.notif-clear:hover {
+    color: #ff5252;
+    border-color: rgba(255, 59, 59, 0.75);
+    background-color: rgba(255, 59, 59, 0.12);
+}
+
+.notif-row {
+    padding: 6px 8px;
+}
+
+.notif-glyph {
+    font-size: 12px;
+    color: #6f6f6f;
+}
+
+.notif-time {
+    font-family: "JetBrains Mono", "Fira Code", "DejaVu Sans Mono", monospace;
+    font-size: 11px;
+    color: #6f6f6f;
+}
+
+.notif-msg {
+    color: #dcdcdc;
+    font-size: 12px;
+}
+
+.notif-info .notif-glyph { color: #6f6f6f; }
+.notif-ok    .notif-glyph { color: #62e690; }
+.notif-ok    .notif-msg   { color: #cfe9d8; }
+.notif-warn  .notif-glyph { color: #ffd60a; }
+.notif-warn  .notif-msg   { color: #ffe89a; }
+.notif-err   .notif-glyph { color: #ff3b3b; }
+.notif-err   .notif-msg   { color: #ff9b9b; }
+
+.notif-empty {
+    color: #7a7a7a;
+    font-size: 12px;
+    padding: 18px 10px;
+}
+
+/* ==== floating target panel ==== */
+
+.target-revealer {
+    background-color: rgba(14, 10, 12, 0.94);
+    border: 1px solid rgba(255, 59, 59, 0.50);
+    border-radius: 10px;
+    box-shadow: -6px 0 28px rgba(0, 0, 0, 0.65),
+                 0 0 22px rgba(255, 59, 59, 0.28),
+                 0 0 0 1px rgba(255, 59, 59, 0.10);
+    min-width: 220px;
+}
+
+.target-revealer .panel {
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+/* ==== docked target panel (overrides earlier floating styles) ==== */
+
+.target-revealer {
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    min-width: 0;
+    padding: 0;
+    margin: 0;
+}
+
+.target-revealer .panel {
+    background-color: rgba(14, 10, 12, 0.96);
+    border: none;
+    border-left: 1px solid rgba(255, 59, 59, 0.45);
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0 10px 0 10px;
+}
+
+.target-revealer .panel:hover {
+    border-left: 1px solid rgba(255, 59, 59, 0.75);
+}
+
+/* Toast title sizing: give it room to breathe */
+.toast-title {
+    min-width: 200px;
+}
+
+.toast-content {
+    min-width: 220px;
+}
+
+/* Slightly wider toast so short titles don't ellipsize */
+.toast {
+    min-width: 360px;
+}
+
+/* ---------- Live Traffic / list views ---------- */
+
+columnview,
+listview,
+gridview {
+    background-color: rgba(2, 3, 5, 0.75);
+    color: #e0e0e0;
+    border-radius: 6px;
+}
+
+columnview > header,
+listview > header,
+gridview > header {
+    background-color: rgba(20, 21, 26, 0.85);
+    border-bottom: 1px solid #ff2147;
+}
+
+columnview > header > button,
+listview > header > button,
+gridview > header > button {
+    background-color: transparent;
+    background-image: none;
+    color: #ff2147;
+    font-size: 9px;
+    font-weight: bold;
+    padding: 6px 8px;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+columnview > header > button:hover,
+listview > header > button:hover {
+    background-color: rgba(45, 10, 18, 0.80);
+    color: #ffffff;
+}
+
+/* lt-* helper classes (used by ARP HTTP view and Live Traffic) */
+.lt-mono {
+    font-family: "JetBrains Mono", "DejaVu Sans Mono", monospace;
+    font-size: 10px;
+    color: #b9bdc5;
+}
+
+.lt-header {
+    color: #ff2147;
+    font-size: 9px;
+    font-weight: bold;
+    padding: 4px 8px;
+    background-color: rgba(20, 21, 26, 0.78);
+}
+
+.lt-row {
+    background-color: rgba(2, 3, 5, 0.55);
+    padding: 3px 6px;
+    border-bottom: 1px solid #1a1c22;
+}
+
+.lt-row:hover {
+    background-color: rgba(39, 7, 15, 0.75);
+}
+
+/* ---------- splash screen wordmark ---------- */
+
+.splash-title {
+    font-family: "Neuropol", "Orbitron", "Bank Gothic",
+                 "Michroma", "Adwaita Sans", sans-serif;
+    font-size: 42px;
+    font-weight: 700;
+    color: #ff2147;
+    letter-spacing: 4px;
+}
+
+.splash-subtitle {
+    font-family: "JetBrains Mono", "DejaVu Sans Mono", monospace;
+    font-size: 11px;
+    color: #ffd60a;
+    letter-spacing: 3px;
+}
+
+/* ==== fingerprint correlation graph ==== */
+.corr-graph {
+    background-color: rgba(2, 3, 5, 0.78);
+    border: 1px solid #292c34;
+    border-radius: 6px;
+}
+
+/* ==== IDS alert severity ==== */
+.ids-alert-high {
+    color: #ff526f;
+    font-weight: bold;
+    border-left: 3px solid #ff2147;
+    padding-left: 8px;
+}
+.ids-alert-med {
+    color: #ffb020;
+    border-left: 3px solid #ffb020;
+    padding-left: 8px;
+}
+.ids-alert-info {
+    color: #b9bdc5;
+    border-left: 3px solid #444850;
+    padding-left: 8px;
+}
+
+/* ==== remote node status ==== */
+.node-online   { color: #62e690; font-weight: bold; }
+.node-unknown  { color: #ffb020; font-weight: bold; }
+.node-offline  { color: #ff526f; font-weight: bold; }
+
+/* ==== resolver hash-type pill ==== */
+.hash-v1 { color: #ffb020; font-weight: bold; }
+.hash-v2 { color: #ff526f; font-weight: bold; }
+
+/* ==== spectrum plot ==== */
+.spectrum-plot {
+    background-color: rgba(2, 3, 5, 0.80);
+    border: 1px solid #292c34;
+    border-radius: 6px;
+}
+
+/* ==== firmware analysis highlighting ==== */
+.hl-secret { color: #ff526f; font-weight: bold; }
+.hl-key    { color: #ffd60a; font-weight: bold; }
+.hl-url    { color: #6fb3ff; }
+.hl-admin  { color: #ff82c8; font-weight: bold; }
+
+/* ==== log view legibility inside section cards ==== */
+.section-card textview,
+.section-card .event-view {
+    font-family: "JetBrains Mono", "DejaVu Sans Mono", monospace;
+    font-size: 12px;
+    /* 1.55 rather than 1.5: monospace lines of log output run together at
+       the tighter setting once there are more than a screenful. */
+    line-height: 1.55;
+    color: #dfe3ea;
+    background-color: rgba(2, 3, 5, 0.92);
+    border: 1px solid rgba(120, 132, 150, 0.18);
+    padding: 10px 12px;
+}
+
+.section-card textview > text,
+.section-card .event-view > text {
+    background-color: transparent;
+}
+
+/* slightly larger monospace for general event drawer too,
+   since 10px was too small there as well */
+.event-view {
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+/* ==== force log text legibility — hits the internal text subnode ==== */
+.event-view,
+.event-view text,
+textview.event-view text {
+    font-family: "JetBrains Mono", "DejaVu Sans Mono", monospace;
+    font-size: 13px;
+    color: #f0f3f7;
+    background-color: transparent;
+}
+
+.event-view {
+    background-color: rgba(2, 3, 5, 0.94);
+    padding: 10px 12px;
+}
+
+textview text {
+    font-size: 13px;
+    color: #f0f3f7;
+}
+
+/* ==== FINAL: match the internal text subnode directly ==== */
+/* In GTK4, the text inside a GtkTextView renders on an internal
+   "text" node that is a DIRECT child of the "textview" node. The
+   descendant selector ".event-view text" is not understood by
+   GTK4 CSS — only the direct-child "> text" form matches. These
+   rules use the correct form and win by being last in the file. */
+
+textview > text {
+    font-family: "JetBrains Mono", "DejaVu Sans Mono", monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #f0f3f7;
+}
+
+textview.event-view > text,
+.section-card textview > text,
+.section-card .event-view > text {
+    font-size: 13px;
+    color: #f0f3f7;
+    background-color: transparent;
+}
+
+/* ==== WPS log hard override ==== */
+/* The WPS Attack tab wraps its log in a section-card, unlike the
+   eviltwin / pmkid / karma log views which are appended directly to
+   the page. This last rule targets the WPS log specifically with
+   maximum specificity to force a legible size regardless of any
+   other matching rules. */
+.wps-log,
+.wps-log > text,
+.wps-log text {
+    font-family: "JetBrains Mono", "DejaVu Sans Mono", monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #f0f3f7;
+    background-color: rgba(2, 3, 5, 0.94);
+}
+
+.section-card .wps-log,
+.section-card .wps-log > text {
+    font-size: 13px;
+    color: #f0f3f7;
+}
+
+/* ---- fingerprint phase B ---- */
+.ble-addr-rand { color: #ffd60a; font-weight: bold; }
+.ble-addr-pub  { color: #62e690; font-weight: bold; }
+
+/* ==================================================================== */
+/*  THEMES                                                              */
+/* ==================================================================== */
+/* Each theme is scoped under a class on the toplevel window, so the     */
+/* default look is untouched and a theme only overrides what it needs.   */
+/* A class + element selector (.theme-x button) out-specifies the bare   */
+/* element rules above, so ordering does not matter.                     */
+/*                                                                       */
+/* GTK 4.14 supports no transition/animation/@keyframes: they parse and  */
+/* do nothing. Every rule here is static. Animated effects are drawn by  */
+/* the app, not by this file.                                            */
+/* ==================================================================== */
+
+/* ---------- Matrix Terminal ---------------------------------------- */
+/* Pitch black, neon green, hairline dark borders. Square, dense, and    */
+/* deliberately terminal-like: no rounding, no glow except on hover.     */
+
+.theme-matrix {
+    background-color: #000000;
+    color: #00FF41;
+}
+
+.theme-matrix button {
+    background-color: #000000;
+    background-image: none;
+    color: #00FF41;
+    border: 1px solid #1A1A1A;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 5px 10px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+}
+
+.theme-matrix button:hover {
+    border-color: #00FF41;
+    background-color: rgba(0, 255, 65, 0.08);
+    box-shadow: 0 0 6px rgba(0, 255, 65, 0.35);
+}
+
+.theme-matrix button:active,
+.theme-matrix button:checked {
+    background-color: #00FF41;
+    color: #000000;
+    border-color: #00FF41;
+    box-shadow: none;
+}
+
+.theme-matrix button:disabled {
+    color: #0d5f22;
+    border-color: #101010;
+}
+
+.theme-matrix button.accent {
+    background-color: #00FF41;
+    color: #000000;
+    border-color: #00FF41;
+}
+
+.theme-matrix button.flat {
+    background-color: transparent;
+    border-color: transparent;
+}
+
+/* tabs: a status bar rather than cards */
+.theme-matrix notebook > header {
+    background-color: #000000;
+    border-bottom: 1px solid #1A1A1A;
+}
+
+.theme-matrix notebook > header > tabs > tab {
+    background-color: #000000;
+    color: #0f8f2f;
+    border: 1px solid #1A1A1A;
+    border-bottom: none;
+    border-radius: 0;
+    padding: 6px 14px;
+    letter-spacing: 0.6px;
+}
+
+.theme-matrix notebook > header > tabs > tab:hover {
+    color: #00FF41;
+    background-color: rgba(0, 255, 65, 0.06);
+}
+
+.theme-matrix notebook > header > tabs > tab:checked {
+    color: #00FF41;
+    background-color: #000000;
+    border-top: 2px solid #00FF41;
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.25);
+}
+
+/* menus: read like a terminal listing */
+.theme-matrix popover.menu > contents,
+.theme-matrix popover > contents {
+    background-color: #000000;
+    border: 1px solid #1A1A1A;
+    border-radius: 0;
+    box-shadow: 0 0 12px rgba(0, 255, 65, 0.22);
+}
+
+.theme-matrix popover.menu modelbutton,
+.theme-matrix popover.menu menuitem {
+    color: #00FF41;
+    border-radius: 0;
+    padding: 5px 10px;
+}
+
+.theme-matrix popover.menu modelbutton:hover,
+.theme-matrix popover.menu menuitem:hover {
+    background-color: rgba(0, 255, 65, 0.14);
+    color: #7dffa8;
+}
+
+.theme-matrix entry,
+.theme-matrix spinbutton {
+    background-color: #000000;
+    color: #00FF41;
+    border: 1px solid #1A1A1A;
+    border-radius: 0;
+    caret-color: #00FF41;
+}
+
+/* ---------- Ghost in the Shell ------------------------------------- */
+/* Translucent blue panels, electric blue accents, ghostly white text.   */
+/* Rounded and soft where Matrix is square and hard; alerts go orange.   */
+
+.theme-ghost {
+    background-color: rgba(10, 20, 30, 0.9);
+    color: #F0F4F8;
+}
+
+.theme-ghost button {
+    background-color: rgba(10, 20, 30, 0.72);
+    background-image: none;
+    color: #F0F4F8;
+    border: 1px solid rgba(0, 123, 255, 0.45);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    padding: 6px 12px;
+    font-weight: 500;
+}
+
+.theme-ghost button:hover {
+    border-color: #007BFF;
+    background-color: rgba(0, 123, 255, 0.18);
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.45);
+}
+
+.theme-ghost button:active,
+.theme-ghost button:checked {
+    background-color: #007BFF;
+    color: #F0F4F8;
+    border-color: #4da3ff;
+    box-shadow: 0 0 14px rgba(0, 123, 255, 0.6);
+}
+
+.theme-ghost button:disabled {
+    color: rgba(240, 244, 248, 0.35);
+    border-color: rgba(0, 123, 255, 0.15);
+}
+
+.theme-ghost button.accent {
+    background-color: #007BFF;
+    color: #F0F4F8;
+    border-color: #4da3ff;
+}
+
+/* orange is reserved for alerts and destructive actions */
+.theme-ghost button.destructive-action,
+.theme-ghost button.destructive {
+    border-color: rgba(255, 107, 0, 0.65);
+    color: #FF6B00;
+}
+
+.theme-ghost button.destructive-action:hover,
+.theme-ghost button.destructive:hover {
+    background-color: rgba(255, 107, 0, 0.18);
+    border-color: #FF6B00;
+    box-shadow: 0 0 10px rgba(255, 107, 0, 0.45);
+}
+
+/* tabs: soft panels with an electric underline on the active one */
+.theme-ghost notebook > header {
+    background-color: rgba(10, 20, 30, 0.82);
+    border-bottom: 1px solid rgba(0, 123, 255, 0.30);
+}
+
+.theme-ghost notebook > header > tabs > tab {
+    background-color: rgba(10, 20, 30, 0.55);
+    color: rgba(240, 244, 248, 0.62);
+    border: 1px solid rgba(0, 123, 255, 0.18);
+    border-radius: 8px 8px 0 0;
+    padding: 6px 15px;
+    margin: 0 1px;
+}
+
+.theme-ghost notebook > header > tabs > tab:hover {
+    color: #F0F4F8;
+    background-color: rgba(0, 123, 255, 0.14);
+}
+
+.theme-ghost notebook > header > tabs > tab:checked {
+    color: #F0F4F8;
+    background-color: rgba(0, 123, 255, 0.22);
+    border-bottom: 2px solid #007BFF;
+    box-shadow: 0 0 12px rgba(0, 123, 255, 0.40);
+}
+
+/* menus: frosted panels */
+.theme-ghost popover.menu > contents,
+.theme-ghost popover > contents {
+    background-color: rgba(10, 20, 30, 0.94);
+    border: 1px solid rgba(0, 123, 255, 0.45);
+    border-radius: 10px;
+    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.6),
+                0 0 0 1px rgba(0, 123, 255, 0.10);
+}
+
+.theme-ghost popover.menu modelbutton,
+.theme-ghost popover.menu menuitem {
+    color: #F0F4F8;
+    border-radius: 6px;
+    padding: 6px 10px;
+}
+
+.theme-ghost popover.menu modelbutton:hover,
+.theme-ghost popover.menu menuitem:hover {
+    background-color: rgba(0, 123, 255, 0.22);
+    color: #ffffff;
+}
+
+.theme-ghost entry,
+.theme-ghost spinbutton {
+    background-color: rgba(10, 20, 30, 0.72);
+    color: #F0F4F8;
+    border: 1px solid rgba(0, 123, 255, 0.35);
+    border-radius: 8px;
+    caret-color: #007BFF;
+}
+
+/* ---------- channel picker (shared by both themes) ----------------- */
+.chan-title {
+    color: #ff8080;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+}
+
+.chan-button {
+    min-width: 40px;
+    padding: 4px 6px;
+}
+
+/* ---------- theme coverage: cards, submenus, headers, status ---------- */
+/* The rules above only restyle buttons, tabs and menus, which leaves the
+   page content - cards, module submenus, titles, status pills - looking
+   default and makes a theme feel half-applied. These cover the rest. */
+
+/* ---- Matrix Terminal: content ---- */
+.theme-matrix .module-page,
+.theme-matrix .dependency-page,
+.theme-matrix .module-stack,
+.theme-matrix .module-stack-page {
+    /* translucent on purpose: the matrix rain is drawn behind the content,
+       so an opaque page would hide the very effect this theme exists for */
+    background-color: rgba(0, 0, 0, 0.45);
+    color: #00FF41;
+}
+
+.theme-matrix .section-card {
+    background-color: rgba(0, 0, 0, 0.72);
+    border: 1px solid #1A1A1A;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.theme-matrix .page-title,
+.theme-matrix .section-title,
+.theme-matrix .panel-title,
+.theme-matrix .module-header-title {
+    color: #00FF41;
+    letter-spacing: 0.8px;
+}
+
+.theme-matrix .page-subtitle,
+.theme-matrix .dependency-summary,
+.theme-matrix .dependency-package {
+    color: #0f8f2f;
+}
+
+.theme-matrix .dependency-name,
+.theme-matrix .module-submenu-label,
+.theme-matrix .sidebar-section {
+    color: #00FF41;
+}
+
+.theme-matrix .module-card-category {
+    color: #0f8f2f;
+    letter-spacing: 1.2px;
+}
+
+/* module submenu: a selected line is inverted, like a terminal cursor */
+.theme-matrix .module-submenu-row {
+    border-radius: 0;
+    border-left: 2px solid transparent;
+}
+
+.theme-matrix .module-submenu-row:hover {
+    background-color: rgba(0, 255, 65, 0.10);
+    border-left-color: #00FF41;
+}
+
+.theme-matrix .module-submenu-row:selected {
+    background-color: #00FF41;
+    border-left-color: #00FF41;
+}
+
+.theme-matrix .module-submenu-row:selected .module-submenu-label,
+.theme-matrix .module-submenu-row:selected .module-submenu-icon {
+    color: #000000;
+}
+
+.theme-matrix .status-pill {
+    border-radius: 0;
+    border: 1px solid #1A1A1A;
+    background-color: #000000;
+    color: #00FF41;
+}
+
+.theme-matrix .status-running { color: #00FF41; border-color: #00FF41; }
+.theme-matrix .status-idle    { color: #0f8f2f; }
+.theme-matrix .status-error   { color: #ff3b3b; border-color: #ff3b3b; }
+
+/* ---- Ghost in the Shell: content ---- */
+.theme-ghost .module-page,
+.theme-ghost .dependency-page,
+.theme-ghost .module-stack,
+.theme-ghost .module-stack-page {
+    background-color: rgba(10, 20, 30, 0.9);
+    color: #F0F4F8;
+}
+
+.theme-ghost .section-card {
+    background-color: rgba(12, 24, 36, 0.82);
+    border: 1px solid rgba(0, 123, 255, 0.30);
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+}
+
+.theme-ghost .page-title,
+.theme-ghost .section-title,
+.theme-ghost .panel-title,
+.theme-ghost .module-header-title {
+    color: #F0F4F8;
+    letter-spacing: 0.5px;
+}
+
+.theme-ghost .page-subtitle,
+.theme-ghost .dependency-summary,
+.theme-ghost .dependency-package {
+    color: rgba(240, 244, 248, 0.60);
+}
+
+.theme-ghost .dependency-name,
+.theme-ghost .module-submenu-label,
+.theme-ghost .sidebar-section {
+    color: #F0F4F8;
+}
+
+.theme-ghost .module-card-category {
+    color: rgba(0, 123, 255, 0.85);
+    letter-spacing: 1.2px;
+}
+
+.theme-ghost .module-submenu-row {
+    border-radius: 8px;
+    border-left: 2px solid transparent;
+}
+
+.theme-ghost .module-submenu-row:hover {
+    background-color: rgba(0, 123, 255, 0.16);
+    border-left-color: #007BFF;
+}
+
+.theme-ghost .module-submenu-row:selected {
+    background-color: rgba(0, 123, 255, 0.85);
+    border-left-color: #4da3ff;
+    box-shadow: 0 0 12px rgba(0, 123, 255, 0.45);
+}
+
+.theme-ghost .module-submenu-row:selected .module-submenu-label,
+.theme-ghost .module-submenu-row:selected .module-submenu-icon {
+    color: #ffffff;
+}
+
+.theme-ghost .status-pill {
+    border-radius: 10px;
+    border: 1px solid rgba(0, 123, 255, 0.40);
+    background-color: rgba(0, 123, 255, 0.14);
+    color: #F0F4F8;
+}
+
+.theme-ghost .status-running { color: #F0F4F8; border-color: rgba(0, 123, 255, 0.75); }
+.theme-ghost .status-idle    { color: rgba(240, 244, 248, 0.55); }
+/* orange means something is wrong, never decoration */
+.theme-ghost .status-error   { color: #FF6B00; border-color: #FF6B00; }
+
+/* Keep the pane edge on-theme rather than neutral grey. */
+.theme-matrix textview,
+.theme-matrix .event-view {
+    border-color: rgba(0, 255, 65, 0.20);
+}
+.theme-ghost textview,
+.theme-ghost .event-view {
+    border-color: rgba(0, 123, 255, 0.22);
+}

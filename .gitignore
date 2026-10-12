@@ -1,0 +1,47 @@
+# ── runtime data ──────────────────────────────────────────────────────
+# These are created on first run and hold whatever came off the air:
+# real BSSIDs, SSIDs and captured credentials. Never commit them.
+loot/
+captures/
+state/
+logs/
+tmp/
+
+# ── build output ──────────────────────────────────────────────────────
+native/builddir/
+native/build/
+*.o
+*.ko
+*.so
+__pycache__/
+*.pyc
+
+# ── editor / OS ───────────────────────────────────────────────────────
+*.bak
+*.bak.*
+*.before-*
+*.orig
+*~
+.DS_Store
+.directory
+.vscode/
+.idea/
+
+# ── wordlists ─────────────────────────────────────────────────────────
+# Downloaded dictionaries. They are on disk and they ship in the tarball,
+# but they do not belong in git: 58 MB of text that the wordlist manager
+# can fetch, and every byte of it counts against the repo forever.
+wordlists/*.txt
+wordlists/*.gz
+wordlists/*_full*
+wordlists/*_large*
+wordlists/rockyou*
+!wordlists/.meta
+!wordlists/rules/
+
+# ── sweep backups ─────────────────────────────────────────────────────
+# The pkexec sweep leaves timestamped copies in hidden directories. They
+# are not matched by *.bak patterns - the names carry no extension.
+.pkexec-sweep-backups/
+*.[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]
+*.[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]

@@ -1,0 +1,181 @@
+#############################################
+# ******* RULE: hAsHcAt BeSt64 RuLE ******* #
+# ******* SOFTWARE: wWw.HaShCaT.nEt ******* #
+# *** ARTICLES: WwW.qUeStIoN-DeFeNsE.cOm ** #
+#############################################
+
+######################
+## first four rules ##
+######################
+# do nothing
+:
+# reverse each combination
+r
+# all uppercase characters
+u
+# toggle the case of char in position 0
+T0
+
+####################
+## append numbers ##
+####################
+# append 0 to the end of each combination
+$0
+# append 1 to the end of each combination
+$1
+# append 2 to the end of each combination
+$2
+# append 3 to the end of each combination
+$3
+# append 4 to the end of each combination
+$4
+# append 5 to the end of each combination
+$5
+# append 6 to the end of each combination
+$6
+# append 7 to the end of each combination
+$7
+# append 8 to the end of each combination
+$8
+# append 9 to the end of each combination
+$9
+
+########################################
+## append various number combinations ##
+########################################
+# append 00 to the end of each combination
+$0 $0
+# append 01 to the end of each combination
+$0 $1
+# append 11 to the end of each combination
+$1 $1
+# append 12 to the end of each combination
+$1 $2
+# append 21 to the end of each combination
+$2 $1
+# append 22 to the end of each combination
+$2 $2
+# append 23 to the end of each combination
+$2 $3
+# append 69 to the end of each combination
+$6 $9
+# append 77 to the end of each combination
+$7 $7
+# append 88 to the end of each combination
+$8 $8
+# append 99 to the end of each combination
+$9 $9
+# append 123 to the end of each combination
+$1 $2 $3
+
+###########################
+## high frequency append ##
+###########################
+# append s to the end of each combination
+$s
+
+#####################################
+## high frequency overwrite at end ##
+#####################################
+# delete last two chars of each combination and append an a at the end of each combination
+] ] $a
+# delete last two chars of each combination and append an er at the end of each combination
+] ] $e $r
+# delete last two chars of each combination and append an ie at the end of each combination
+] ] $i $e
+# delete last three chars of each combination and append an o at the end of each combination
+] ] ] $o
+# delete last three chars of each combination and append an y at the end of each combination
+] ] ] $y
+# delete last three chars of each combination and append an 123 at the end of each combination
+] ] ] $1 $2 $3
+# delete last three chars of each combination and append an man at the end of each combination
+] ] ] $m $a $n
+
+############################
+## high frequency prepend ##
+############################
+# add a 1 to the beginning of each combination
+^1
+# add the to the beginning of each combination
+^e ^h ^t
+
+#############
+## leetify ##
+#############
+# replace all instances of o with 0
+so0
+# replace all instances of i with 1
+si1
+# replace all instance of e with 3
+se3
+
+#####################
+## simple extracts ##
+#####################
+# delete the third and the fourth char
+D2 D2
+# delete the fourth char
+D3
+# delete the fifth char
+D4
+
+###################
+## undouble word ##
+###################
+# truncate the combination at 6 chars and then append 1
+'5 $1
+
+###########################################################
+## removes suffixes from 'strongified' passwords in dict ##
+###########################################################
+# remove the last char
+]
+# remove the last two chars
+] ]
+# remove the last three chars
+] ] ]
+# remove the last three chars and then duplicate the remaining word
+] ] ] d
+# remove the last two chars, delete the second char, and then remove the last char
+] ] D1 ]
+
+#############
+## rotates ##
+#############
+# increment the sixth char by one ascii value, delete the last char, move the last char to the first position four times, and cut the word off at the fifth char
++5 ] } } } } '4
+# delete the first two chars and then rotate the first char to the end of the combination six times
+x02 { { { { { {
+# rotate the last char to the beginning, delete the last two chars, and then rotate the first char to the end of the combination
+} ] ] {
+# rotate the last char to the beginning of the combination two times, lower the ascii value of the first char, and then delete the third and fourth char
+} } -0 x12
+# rotate the last char to the beginning four times and truncate the combination to five chars
+} } } } '4
+# rotate the last char to the beginning five times and then truncate the combination at six chars
+} } } } } '5
+# rotate the last char to the beginning 6 times, duplicate the last four chars at the end of the combination, truncate the combination at 5 chars, and then duplicate the remaining combination
+} } } } } } Y4 '4 d
+
+#############
+## unknown ##
+#############
+# swap the first char with the fifth char, increment the ascii value of the first char by one, and truncate the combination at 5 chars
+*04 +0 '4
+# swap the first char with the sixth char, delete the fourth char, duplicate the remaining combination, truncate the combination at four chars, and then duplicate the combination once
+*05 x03 d '3 p1
+# append 00000000
++0 +0 +0 +0 +0 +0 +0 +0
+# duplicate the last char four times, truncate the combination at 9 chars, and then delete the third, fourth, fifth, and sixth chars
+Z4 '8 x42
+# duplicate the last char five times, swap the eighth and sixth char, truncate the combination at six chars, move the first char to the end of the combination, and then delete the first two chars
+Z5 *75 '5 { x02
+# duplicate the entire combination, delete the ninth and tenth chars, duplicate the last four chars, truncate the word at the fifth char, and then duplicate the remaining combination
+d x28 Y4 '4 d
+# duplicate the combination reversed, replace the sixth char with the eleventh char, truncate the combination at the ninth char, and delete the fifth char
+f *A5 '8 x14
+# duplicate the combination twice, truncate the combination at the eight letter, duplicate the combination, and then delete the ninth, tenth, eleventh, twelfth and thirteenth chars
+p2 '7 p1 x58
+# delete the fifth char, duplicate the combination, duplicate the new combination twice, and truncate the combination after the seventh char
+x14 d p2 '6

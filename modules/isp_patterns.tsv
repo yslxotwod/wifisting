@@ -1,0 +1,27 @@
+# ISP / model default Wi-Fi key patterns.
+#
+# Data, not code: the underlying research gets corrected and extended, and a
+# wrong row should be fixable without editing a script.
+#
+# confidence tags:
+#   documented  - stated in the cited source
+#   observed    - widely reported for that hardware, not formally published
+#   unverified  - plausible, NOT confirmed; treat as a hypothesis only
+#   unknown     - no derivation known; a generator cannot help
+#
+# charset codes: hex-lower hex-upper lower lower-digit alnum digits
+# class codes:   label-random (printed on the sticker, no derivation)
+#                serial-derived / mac-derived / ssid-derived (algorithmic)
+isp	model	class	length	charset	derivation	confidence	source
+bt	Home Hub	serial-derived	10	hex-upper	serial	documented	VARIoT VAR-200804-0458: SHA-1 of hex(serial minus CC/PP); key = first 5 bytes; SSID = BTHomeHub-<last 2 bytes>
+thomson	SpeedTouch	serial-derived	10	hex-upper	serial	documented	VARIoT VAR-200804-0458: same SHA-1 scheme; SSID = SpeedTouch<last 3 bytes>
+movistar	Comtrend and others	ssid-derived	-	-	ssid	documented	xatakamovil: Movistar WPA key algorithm published; per-model, not per-ISP
+jazztel	router	ssid-derived	-	-	ssid	documented	xatakamovil: algorithm published alongside the Movistar one
+telekom	Speedport (T-Online)	ssid-derived	-	-	ssid	documented	heise.de: preconfigured WPA keys reported easily guessable
+vodafone-de	router	ssid-derived	-	-	ssid	documented	heise.de: preconfigured WPA keys reported easily guessable
+orange	Livebox	ssid-derived	-	-	ssid	observed	silicon.fr: default Wi-Fi key flaw reported for Orange boxes
+sfr	Neufbox	ssid-derived	-	-	ssid	observed	silicon.fr: default Wi-Fi key flaw reported for SFR boxes; community generators exist
+virgin-media	Super Hub 2/3	ssid-derived	8	lower-digit	ssid	observed	SECRYPT 2013 (Schreuders et al.) plus community generators
+fritzbox	AVM Fritz!Box	label-random	16	alnum	-	observed	AVM factory WLAN key printed on the label
+free	Freebox	unknown	-	-	-	unknown	no published derivation found; Free's own docs point at the printed label only
+generic	any	admin-default	-	-	-	observed	admin/admin, admin/password, admin/(blank)
