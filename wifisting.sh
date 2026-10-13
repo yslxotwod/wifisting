@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# wifisting main launcher — v0.5, all 30 modules, category menu
+# wifisting main launcher — category menu over standalone modules
 #
 # Standalone CLI:   sudo bash wifisting.sh
 # Sourced by GUI:   WIFISTING_GUI=1 source wifisting.sh
@@ -23,6 +23,15 @@ SCRIPT_DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
 
 export WIFISTING_ROOT="$SCRIPT_DIR"
 export MODULES_DIR="$SCRIPT_DIR/modules"
+
+# Single source of truth. Bump VERSION, tag the commit, and both the CLI
+# and the build pick it up.
+if [[ -r "$SCRIPT_DIR/VERSION" ]]; then
+    WIFISTING_VERSION=$(tr -d '[:space:]' < "$SCRIPT_DIR/VERSION")
+else
+    WIFISTING_VERSION="unknown"
+fi
+export WIFISTING_VERSION
 export TMP_DIR="$SCRIPT_DIR/tmp"
 export LOOT_DIR="$SCRIPT_DIR/loot"
 export LOG_DIR="$SCRIPT_DIR/logs"
@@ -91,7 +100,7 @@ Usage:
 USAGE
             exit 0 ;;
         -V|--version)
-            echo "wifisting v0.5 — 30 modules"
+            echo "wifisting v${WIFISTING_VERSION}"
             exit 0 ;;
         --list)
             WIFISTING_LIST=1 ;;
@@ -227,8 +236,8 @@ B
     printf '═%.0s' $(seq 1 "$w")
     printf '%s\n' "$C_RESET"
 
-    printf '  %s%s» %swifi · bt · rf offensive toolkit %s// v0.5 %s// ysl%s\n' \
-        "$C_CYN" "$C_BOLD" "$C_WHT" "$C_DIM" "$C_MAG" "$C_RESET"
+    printf '  %s%s» %swifi · bt · rf security toolkit %s// v%s %s// ysl%s\n' \
+        "$C_CYN" "$C_BOLD" "$C_WHT" "$C_DIM" "$WIFISTING_VERSION" "$C_MAG" "$C_RESET"
 
     printf '%s' "$C_PUR"
     printf '─%.0s' $(seq 1 "$w")
