@@ -130,6 +130,34 @@ declare -A DEPS_DNF=(
     [cmake]=cmake [meson]=meson [ninja]=ninja-build [pkg-config]=pkgconf-pkg-config
 )
 
+# Build-time LIBRARIES. These have no executable for `command -v` to find,
+# so pkg-config is the only honest check. Absent from here until a tester
+# hit the GCC 14 build failure: the tool table knew every runtime binary and
+# none of the libraries needed to compile.
+declare -A DEPS_LIBS=(
+    [gtk4]=libgtk-4-dev
+    [vte-2.91-gtk4]=libvte-2.91-gtk4-dev
+    [gdk-pixbuf-2.0]=libgdk-pixbuf-2.0-dev
+)
+declare -A DEPS_LIBS_PACMAN=(
+    [gtk4]=gtk4 [vte-2.91-gtk4]=vte4 [gdk-pixbuf-2.0]=gdk-pixbuf2
+)
+declare -A DEPS_LIBS_DNF=(
+    [gtk4]=gtk4-devel [vte-2.91-gtk4]=vte291-gtk4-devel [gdk-pixbuf-2.0]=gdk-pixbuf2-devel
+)
+
+deps_check_lib() { pkg-config --exists "$1" 2>/dev/null; }
+
+deps_lib_pkg_for() {
+    local lib="$1"
+    case "$(deps_pkg_manager)" in
+        apt)    echo "${DEPS_LIBS[$lib]:-}" ;;
+        dnf)    echo "${DEPS_LIBS_DNF[$lib]:-${DEPS_LIBS[$lib]:-}}" ;;
+        pacman) echo "${DEPS_LIBS_PACMAN[$lib]:-${DEPS_LIBS[$lib]:-}}" ;;
+        *)      echo "${DEPS_LIBS[$lib]:-}" ;;
+    esac
+}
+
 declare -A DEPS_PACMAN=(
     [aircrack-ng]=aircrack-ng [hcxdumptool]=hcxdumptool [hcxtools]=hcxtools
     [hostapd]=hostapd [dnsmasq]=dnsmasq [iw]=iw [ip]=iproute2
@@ -201,6 +229,7 @@ deps_version_ge() {
 
 deps_status_tsv() {
     local tool group pkg state min cur
+    local rows=""
     # Iterate all tools known
     for tool in $(printf '%s\n' "${!DEPS_GROUP[@]}" | sort); do
         group="${DEPS_GROUP[$tool]}"
@@ -210,8 +239,28 @@ deps_status_tsv() {
         else
             state="missing"
         fi
-        printf '%s\t%s\t%s\t%s\n' "$tool" "${pkg:-?}" "$group" "$state"
+        rows+="$(printf '%s\t%s\t%s\t%s\n' "$tool" "${pkg:-?}" "$group" "$state")"$'\n'
     done
+
+    # Libraries, checked with pkg-config rather than command -v.
+    local lib
+    for lib in $(printf '%s\n' "${!DEPS_LIBS[@]}" | sort); do
+        if ! command -v pkg-config >/dev/null 2>&1; then
+            state="unknown"
+        elif deps_check_lib "$lib"; then
+            state="installed"
+        else
+            state="missing"
+        fi
+        rows+="$(printf '%s\t%s\t%s\t%s\n' "$lib" "$(deps_lib_pkg_for "$lib")" "build-lib" "$state")"$'\n'
+    done
+
+    # Sort once at the end: emitting tools then libraries left the combined
+    # output unsorted, which the selftest correctly caught.
+    # Pinned collation: gpsd vs gpsd-clients and similar sort differently
+    # under en_US.UTF-8 than under C, so the emitter and the assertion
+    # must agree on which one they mean.
+    printf '%s' "$rows" | LC_ALL=C sort
 }
 
 deps_check_versions_tsv() {
@@ -487,11 +536,11 @@ deps_selftest() {
 
     # 6. status TSV: one row per registered tool, 4 fields, sorted, honest state
     out=$(deps_status_tsv)
-    chk status-rows     "$(rcount "$out")" "${#DEPS_GROUP[@]}"
+    chk status-rows     "$(rcount "$out")" "$(( ${#DEPS_GROUP[@]} + ${#DEPS_LIBS[@]} ))"
     chk status-fields   "$(printf '%s\n' "$out" | awk -F'\t' 'NF!=4 || $2=="" || $3=="" || $4==""{c++} END{print c+0}')" 0
-    chk status-groups   "$(printf '%s\n' "$out" | awk -F'\t' '$3!="critical" && $3!="optional" && $3!="build"{c++} END{print c+0}')" 0
-    chk status-states   "$(printf '%s\n' "$out" | awk -F'\t' '$4!="installed" && $4!="missing"{c++} END{print c+0}')" 0
-    chk status-sorted   "$(printf '%s\n' "$out" | cut -f1 | sort -c 2>/dev/null; echo $?)" 0
+    chk status-groups   "$(printf '%s\n' "$out" | awk -F'\t' '$3!="critical" && $3!="optional" && $3!="build" && $3!="build-lib"{c++} END{print c+0}')" 0
+    chk status-states   "$(printf '%s\n' "$out" | awk -F'\t' '$4!="installed" && $4!="missing" && $4!="unknown"{c++} END{print c+0}')" 0
+    chk status-sorted   "$(printf '%s\n' "$out" | cut -f1 | LC_ALL=C sort -c 2>/dev/null; echo $?)" 0
     local tool
     for tool in python3 unblob git; do
         chk "status-state-$tool" "$(printf '%s\n' "$out" | awk -F'\t' -v t="$tool" '$1==t{print $4}')" \
