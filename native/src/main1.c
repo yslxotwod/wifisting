@@ -2432,6 +2432,33 @@ toast_close_clicked(GtkButton *b, gpointer user_data)
             GTK_REVEALER(t->revealer), FALSE);
 }
 
+/* Load a bundled icon, falling back to the system theme.
+ *
+ * These used to be referenced by icon name, which resolves through the
+ * system icon theme. That made every module tile depend on wifisting.sh
+ * having installed 60 SVGs into ~/.local/share/icons/hicolor AND on that
+ * theme being visible to the app. On a first run from a live USB neither
+ * held, and the dashboard was a grid of broken-image placeholders.
+ *
+ * Bundling them in the binary removes the dependency: they ship with the
+ * executable and cannot be missing. The theme lookup stays as a fallback
+ * for names that are not ours, like GTK's own window-close-symbolic.
+ */
+static GtkWidget *
+wf_icon_image(const char *name)
+{
+    if (name != NULL && *name != '\0') {
+        g_autofree char *res = g_strdup_printf(
+            "/com/wifisting/native/icons/symbolic/%s.svg", name);
+
+        if (g_resources_get_info(res, G_RESOURCE_LOOKUP_FLAGS_NONE,
+                                 NULL, NULL, NULL))
+            return gtk_image_new_from_resource(res);
+    }
+    return gtk_image_new_from_icon_name(
+        (name != NULL && *name != '\0') ? name : "dialog-information-symbolic");
+}
+
 static const char *
 module_icon_for(const char *module_id)
 {
@@ -2502,7 +2529,7 @@ show_toast_full(AppState *state, const char *module_id,
 
     rev = gtk_revealer_new();
     box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
-    icon = gtk_image_new_from_icon_name(module_icon_for(module_id));
+    icon = wf_icon_image(module_icon_for(module_id));
     col = gtk_box_new(GTK_ORIENTATION_VERTICAL, 2);
     title_lbl = gtk_label_new(title ? title : "wifisting");
     content_lbl = gtk_label_new(message ? message : "");
