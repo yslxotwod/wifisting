@@ -147,11 +147,38 @@ button.flat {
     background: rgba(13, 15, 19, 0.75);
     border: 1px solid #30333b;
     border-radius: 7px;
+
+    /* Declared on the base rule, not only on :hover. A transition set on
+       :hover animates the way in and snaps back instantly on the way out,
+       which reads as a glitch rather than an effect. */
+    transition: background-color 140ms ease-out,
+                border-color     140ms ease-out,
+                box-shadow       140ms ease-out;
 }
 
+/* Hover: the card lifts toward the pointer.
+ *
+ * GTK CSS has no `transform`, so this cannot move the widget the way the
+ * CSS-only demos on the web do - translateY is not available. A layered
+ * box-shadow is the equivalent: a tight ring around the border plus a
+ * soft drop beneath, both tinted with the same red as the border, which
+ * reads as the card rising off the surface. The two are one rule because
+ * a single shadow looks like a smudge.
+ */
 .module-card:hover {
-    background: rgba(55, 7, 18, 0.85);
+    background: rgba(55, 7, 18, 0.95);
     border-color: #f0183d;
+    box-shadow: 0 0 0 1px rgba(240, 24, 61, 0.45),
+                0 8px 20px rgba(240, 24, 61, 0.30);
+}
+
+/* Pressed: settle back down. Without this a click fires the same effect
+   as a hover and the card does not acknowledge the press. */
+.module-card:active {
+    background: rgba(78, 10, 26, 1);
+    border-color: #ff4d6a;
+    box-shadow: 0 0 0 1px rgba(240, 24, 61, 0.65),
+                0 3px 8px rgba(240, 24, 61, 0.35);
 }
 
 .module-card-title {
