@@ -53,7 +53,7 @@ is network MITM. BlueZ tooling is Bluetooth. An assessment means five tools,
 five config formats, and no shared view of the target.
 
 wifisting is wide on purpose — across layers and protocols, in one place. It
-also wraps Responder, mitm6, ntlmrelayx, mdk4 and hcxdumptool rather than
+also wraps Responder, **mitm6**, ntlmrelayx, mdk4 and hcxdumptool rather than
 reimplementing them, so the specialist tools stay underneath where they belong.
 
 The other thing it does differently: **most tools tell you they worked.** This
@@ -66,19 +66,19 @@ of returning an empty result.
 
 ## Notable features
 
-Frame-level jamming. Not a deauth flood — actual reactive jamming, carrier-sense manipulation and FCS corruption, driven through a modified Atheros driver. This needed porting modwifi to kernel 7.0, which is why almost nobody ships it. You can jam one access point's beacons while leaving the rest of the channel alone.
+**Frame-level jamming**. Not a deauth flood — actual **reactive jamming**, **carrier-sense manipulation** and **FCS corruption**, driven through a **modified Atheros driver**. This needed porting **modwifi** to **kernel 7.0**, which is why almost nobody ships it. You can jam one access point's beacons while leaving the rest of the channel alone.
 
-SSID overflow with real IE-length control. Beacons whose SSID exceeds the 32-byte limit, carrying injection payloads in the same bytes. The published ESP32 tools can't do this — WiFi.softAP() truncates at 32, so they all list it as future work. Building the frame by hand means the length byte is independent of the content, which is the case that actually matters.
+**SSID overflow** with real **IE-length control**. Beacons whose SSID exceeds the **32-byte limit**, carrying **injection payloads** in the same bytes. The published **ESP32** tools can't do this — WiFi.softAP() truncates at 32, so they all list it as future work. Building the frame by hand means the length byte is independent of the content, which is the case that actually matters.
 
-Router Advertisement poisoning. mitm6 does DHCPv6 and deliberately skips Router Advertisements, so a network with no DHCPv6 in play is untouched by it. This does RA/SLAAC: one forged packet reconfigures every host's default route and resolver.
+**Router Advertisement poisoning**. **mitm6** does **DHCPv6** and deliberately skips Router Advertisements, so a network with no **DHCPv6** in play is untouched by it. This does **RA/SLAAC**: one forged packet reconfigures every host's default route and resolver.
 
-Client isolation bypass. Gateway bouncing, port stealing, broadcast reflection, plus an inter-NIC relay to hold the bypass open. From the AirSnitch work (NDSS'26).
+**Client isolation bypass**. **Gateway bouncing**, **port stealing**, **broadcast reflection**, plus an **inter-NIC relay** to hold the bypass open. From the **AirSnitch** work (**NDSS'26**).
 
-USB Ethernet MITM. RNDIS-based, PoisonTap-style, over a USB port.
+**USB Ethernet MITM**. **RNDIS**-based, **PoisonTap**-style, over a USB port.
 
-Router recovery and console. Recovery-mode TFTP, UART/U-Boot guidance, offline flash image parsing. Unusual to find in a wireless tool.
+**Router recovery and console**. **Recovery-mode TFTP**, **UART/U-Boot** guidance, **offline flash image parsing**. Unusual to find in a wireless tool.
 
-Multi-node capture. Drive a fleet of remote nodes — Pi, VM, laptop — and correlate what they see.
+**Multi-node capture**. Drive a fleet of remote nodes — Pi, VM, laptop — and correlate what they see.
 
 The one I'd argue matters most: it's built to tell you when it failed. Every module has a --selftest. Hardware-gated modules name the hardware they're missing instead of returning an empty result. A module that reports OK while the target is untouched is worse than one that fails loudly, and that's the bug class I'm hunting.
 
@@ -111,20 +111,20 @@ The one I'd argue matters most: it's built to tell you when it failed. Every mod
 | `35_wifi6_attacks` | HE elements, BSS colour collisions, TWT, spatial reuse |
 | `47_wpa3_attack` | Transition downgrade, Dragonblood, SAE capture and dictionary |
 | `48_wep_attack` | Fake auth, ARP replay, ChopChop, fragmentation, key recovery |
-| `53_jamming` | Frame-level jamming via the modwifi driver |
-| `54_client_isolation` | Gateway bounce, port stealing, broadcast reflection, inter-NIC relay |
-| `55_ssid_overflow` | Oversized SSID past the 32-byte limit, with injection in the same bytes |
+| `53_jamming` | **Frame-level jamming** via the **modwifi** driver |
+| `54_client_isolation` | Gateway bounce, **port stealing**, **broadcast reflection**, **inter-NIC relay** |
+| `55_ssid_overflow` | Oversized SSID past the **32-byte limit**, with injection in the same bytes |
 
 ### MITM and network
 | Module | Description |
 |---|---|
 | `07_arp` | ARP spoofing and MITM capture |
 | `13_802.1x_relay` | RADIUS relay for 802.1X |
-| `32_resolver_poison` | LLMNR/NBT-NS/mDNS poisoning, NTLM relay, mitm6, Router Advertisement |
-| `49_usb_mitm` | USB Ethernet MITM over RNDIS |
+| `32_resolver_poison` | LLMNR/NBT-NS/mDNS poisoning, NTLM relay, **mitm6**, Router Advertisement |
+| `49_usb_mitm` | **USB Ethernet MITM** over **RNDIS** |
 | `50_router_lan` | TR-064, HNAP, UPnP/SSDP, SNMP, DNS rebinding, CSRF |
 | `51_router_web` | Diagnostic-page injection, rom-0 disclosure, default credentials |
-| `52_router_console` | Recovery-mode TFTP, UART/U-Boot guidance, offline flash parsing |
+| `52_router_console` | **Recovery-mode TFTP**, **UART/U-Boot** guidance, offline flash parsing |
 
 ### Bluetooth
 | Module | Description |
@@ -141,13 +141,13 @@ The one I'd argue matters most: it's built to tell you when it failed. Every mod
 ### 802.15.4
 | Module | Description |
 |---|---|
-| `26_zigbee` | Zigbee sniffing and attacks (CC2531 / nRF52840) |
+| `26_zigbee` | Zigbee sniffing and attacks (**CC2531** / **nRF52840**) |
 | `57_thread` | Thread mesh analysis and border router discovery |
 
 ### RF and physical
 | Module | Description |
 |---|---|
-| `25_rf_spectrum` | SDR spectrum sweeps, IQ capture, channel occupancy |
+| `25_rf_spectrum` | **SDR** spectrum sweeps, IQ capture, channel occupancy |
 | `40_wifi_csi` | Channel state information parsing and motion analysis |
 | `42_subghz` | Sub-GHz OOK pulse train decoding and band reference |
 | `43_nfc_rfid` | NDEF codec and MIFARE tag structure analysis |
@@ -183,17 +183,17 @@ The one I'd argue matters most: it's built to tell you when it failed. Every mod
 
 Nothing here is needed to build or launch the app. But most of it won't do anything without at least one of these, so it's worth knowing what each piece buys you.
 
-Essential — a Wi-Fi adapter that can inject. Atheros AR9271 is what I built and tested against: TP-Link WN722N v1, Alfa AWUS036NHA, Technoethical N150.
+**Essential** — a Wi-Fi adapter that **can inject**. **Atheros AR9271** is what I built and tested against: **TP-Link WN722N v1**, **Alfa AWUS036NHA**, **Technoethical N150**.
 
-Intel adapters will not work for anything involving injection. The app detects iwlwifi and tells you so instead of failing quietly, but it will refuse. Monitor mode alone isn't enough. Without one of these, you can browse the interface and read captures, and that's about it.
+**Intel adapters** will not work for anything involving injection. The app detects **iwlwifi** and tells you so instead of failing quietly, but it will refuse. **Monitor mode** alone isn't enough. Without one of these, you can browse the interface and read captures, and that's about it.
 
-A second Wi-Fi adapter — for client isolation testing. That module needs two interfaces associated at the same time, one acting as the victim and one as the attacker. Any managed-capable card works as the second; it doesn't need to inject.
+**A second Wi-Fi adapter** — for client isolation testing. That module needs two interfaces associated at the same time, one acting as the victim and one as the attacker. Any managed-capable card works as the second; it doesn't need to inject.
 
-Bluetooth adapter — for the eight Bluetooth modules. Classic and BLE recon, SSP, advertising forgery, fuzzing, mesh, tracker hunting, HID injection. A recent adapter is preferable; some of the older CSR dongles won't pass BLE advertising data through.
+**Bluetooth adapter** — for the eight Bluetooth modules. Classic and BLE recon, SSP, advertising forgery, fuzzing, mesh, tracker hunting, HID injection. A recent adapter is preferable; some of the older CSR dongles won't pass BLE advertising data through.
 
-802.15.4 radio — for Zigbee and Thread. A CC2531, CC2652 or nRF52840 dongle, flashed with sniffing firmware. One radio covers both, because Thread and Zigbee share the same physical layer — they're different stacks on the same silicon. This is also the hardware that gets you toward Matter.
+**802.15.4 radio** — for Zigbee and Thread. A **CC2531**, **CC2652** or **nRF52840** dongle, flashed with sniffing firmware. One radio covers both, because Thread and Zigbee share the same physical layer — they're different stacks on the same silicon. This is also the hardware that gets you toward **Matter**.
 
-SDR — for RF spectrum, sub-GHz, LoRa and drone Remote ID. An RTL-SDR is the cheap entry point and covers sub-GHz receive. A HackRF adds 2.4 GHz coverage and transmit, which you need for anything that isn't passive. Note that sub-GHz transmission — replay attacks and the like — needs TX-capable hardware; an RTL-SDR can only listen.
+**SDR** — for RF spectrum, sub-GHz, LoRa and drone Remote ID. An **RTL-SDR** is the cheap entry point and covers sub-GHz receive. A **HackRF** adds 2.4 GHz coverage and transmit, which you need for anything that isn't passive. Note that sub-GHz transmission — replay attacks and the like — needs **TX-capable hardware**; an **RTL-SDR** can only listen.
 
 NFC reader/writer — for the NFC/RFID module. A PN532 or ACR122U handles NDEF and MIFARE work. A Proxmark3 if you're going past the tag structure analysis into proper card research.
 
@@ -278,7 +278,7 @@ Tested against real hardware:
 - Enterprise 802.1X, PEAP, TEAP, GTC downgrade
 - PMF bypass, KRACK, Kr00k, FragAttacks
 - Evil twin, Karma, captive portal, beacon and auth floods
-- ARP MITM, rogue DHCP, Responder, mitm6, NTLM relay, Router Advertisement
+- ARP MITM, rogue DHCP, Responder, **mitm6**, NTLM relay, Router Advertisement
 - Client isolation testing
 - Router-side: TR-064, HNAP, UPnP, SNMP, web UI, console and TFTP
 - Analysis: capture analysis, statistics, fingerprinting, wordlists
@@ -287,8 +287,8 @@ Tested against real hardware:
 
 - **All Bluetooth modules.** No adapter was available. Classic and BLE recon,
   SSP, advertising forgery, fuzzing, mesh, tracker hunting, HID injection.
-- **Sub-GHz, LoRa, Zigbee, NFC, drone Remote ID, RF spectrum.** No SDR or radio.
-- **Thread.** Offline capture analysis works; live scanning needs an 802.15.4 radio.
+- **Sub-GHz, LoRa, Zigbee, NFC, drone Remote ID, RF spectrum.** No **SDR** or radio.
+- **Thread.** Offline capture analysis works; live scanning needs an **802.15.4 radio**.
 - **Jamming.** Needs a modified driver and firmware that is not included. It will
   report that it cannot find the driver. That is correct behaviour, not a bug.
 
@@ -408,5 +408,5 @@ Built on the work of others. The specialist tools stay underneath:
 - **Responder**, **impacket**, **mitm6** — credential capture and relay
 - **hostapd / dnsmasq** — rogue AP and DHCP
 - **modwifi** (Mathy Vanhoef) — frame-level jamming driver capabilities
-- **AirSnitch** (Vanhoef et al., NDSS'26) — client isolation bypass research
+- **AirSnitch** (Vanhoef et al., **NDSS'26**) — client isolation bypass research
 - **scapy** — frame construction throughout
