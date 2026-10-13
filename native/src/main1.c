@@ -18455,6 +18455,8 @@ hid_build_payloads(AppState *state, gpointer module_data)
 static GtkWidget *
 hid_build_info(AppState *state, gpointer module_data)
 {
+    /* Part of the callback signature; unused here. */
+    (void)module_data;
     GtkWidget *page = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
     GtkWidget *title = gtk_label_new("Hardware Requirements");
     GtkWidget *subtitle = gtk_label_new(
@@ -28447,6 +28449,7 @@ beacon_flood_build_flood(AppState *state, gpointer module_data)
     GtkWidget *card = gtk_box_new(GTK_ORIENTATION_VERTICAL, 8);
     GtkWidget *card_title = gtk_label_new("CONTROLS");
     GtkWidget *cfg_row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
+    (void)cfg_row;   /* set for clarity, read nowhere */
     GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
     GtkWidget *start = gtk_button_new_with_label("Start flood");
     GtkWidget *stop = gtk_button_new_with_label("Stop");
@@ -38051,6 +38054,8 @@ rn_fleet_run(GtkButton *button, gpointer user_data)
 static GtkWidget *
 remote_node_build_overview(AppState *state, gpointer module_data)
 {
+    /* Part of the callback signature; unused here. */
+    (void)state;
     RemoteNodePage *m = module_data;
     GtkWidget *page = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
     gtk_widget_add_css_class(page, "dependency-page");
@@ -38708,6 +38713,8 @@ static void rn_run_argv(GtkButton *button, gpointer user_data);
 static GtkWidget *
 remote_node_build_nodes(AppState *state, gpointer module_data)
 {
+    /* Part of the callback signature; unused here. */
+    (void)state;
     RemoteNodePage *m = module_data;
     GtkWidget *page = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
     gtk_widget_add_css_class(page, "dependency-page");
@@ -38867,6 +38874,8 @@ rn_stream_clear_clicked(GtkButton *b, gpointer ud)
 static GtkWidget *
 remote_node_build_stream(AppState *state, gpointer module_data)
 {
+    /* Part of the callback signature; unused here. */
+    (void)state;
     RemoteNodePage *m = module_data;
     GtkWidget *page = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
     gtk_widget_add_css_class(page, "dependency-page");
@@ -38991,6 +39000,8 @@ rn_atk_stop_clicked(GtkButton *b, gpointer ud)
 static GtkWidget *
 remote_node_build_attacks(AppState *state, gpointer module_data)
 {
+    /* Part of the callback signature; unused here. */
+    (void)state;
     RemoteNodePage *m = module_data;
     GtkWidget *page = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
     gtk_widget_add_css_class(page, "dependency-page");
@@ -39157,6 +39168,8 @@ rn_auto_reload_clicked(GtkButton *b, gpointer ud)
 static GtkWidget *
 remote_node_build_automation(AppState *state, gpointer module_data)
 {
+    /* Part of the callback signature; unused here. */
+    (void)state;
     RemoteNodePage *m = module_data;
     GtkWidget *page = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
     gtk_widget_add_css_class(page, "dependency-page");
@@ -39354,6 +39367,8 @@ rn_hp_node_changed(GtkDropDown *dd, GParamSpec *ps, gpointer ud)
 static GtkWidget *
 remote_node_build_honeypot(AppState *state, gpointer module_data)
 {
+    /* Part of the callback signature; unused here. */
+    (void)state;
     RemoteNodePage *m = module_data;
     GtkWidget *page = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
     gtk_widget_add_css_class(page, "dependency-page");
@@ -39540,6 +39555,8 @@ rn_cg_refresh_clicked(GtkButton *b, gpointer ud)
 static GtkWidget *
 remote_node_build_crack_grid(AppState *state, gpointer module_data)
 {
+    /* Part of the callback signature; unused here. */
+    (void)state;
     RemoteNodePage *m = module_data;
     GtkWidget *page = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
     gtk_widget_add_css_class(page, "dependency-page");
@@ -40047,6 +40064,8 @@ rp_reload_start_log_clicked(GtkButton *b, gpointer ud)
 static GtkWidget *
 rp_build_start(AppState *state, gpointer module_data)
 {
+    /* Part of the callback signature; unused here. */
+    (void)state;
     ResolverPoisonPage *m = module_data;
     GtkWidget *page = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
     gtk_widget_add_css_class(page, "dependency-page");
@@ -40216,6 +40235,8 @@ rp_sessions_refresh_clicked(GtkButton *b, gpointer ud)
 static GtkWidget *
 rp_build_sessions(AppState *state, gpointer module_data)
 {
+    /* Part of the callback signature; unused here. */
+    (void)state;
     ResolverPoisonPage *m = module_data;
     GtkWidget *page = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
     gtk_widget_add_css_class(page, "dependency-page");
@@ -40310,6 +40331,8 @@ rp_relay_log_clicked(GtkButton *b, gpointer ud)
 static GtkWidget *
 rp_build_relay(AppState *state, gpointer module_data)
 {
+    /* Part of the callback signature; unused here. */
+    (void)state;
     ResolverPoisonPage *m = module_data;
     GtkWidget *page = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
     gtk_widget_add_css_class(page, "dependency-page");
@@ -40449,6 +40472,8 @@ rp_m6_log_clicked(GtkButton *b, gpointer ud)
 static GtkWidget *
 rp_build_mitm6(AppState *state, gpointer module_data)
 {
+    /* Part of the callback signature; unused here. */
+    (void)state;
     ResolverPoisonPage *m = module_data;
     GtkWidget *page = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
     gtk_widget_add_css_class(page, "dependency-page");
@@ -48367,6 +48392,7 @@ create_sidebar(AppState *state)
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
     GtkWidget *title = gtk_label_new("MODULES");
     const char *last_category = NULL;
+    (void)last_category;   /* assigned for clarity, never read */
 
     gtk_widget_add_css_class(outer, "sidebar");
     gtk_widget_add_css_class(title, "sidebar-title");
