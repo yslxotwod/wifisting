@@ -1972,3 +1972,105 @@ textview.event-view > text,
     color: #ffd60a;
     font-weight: 600;
 }
+
+/* ====================================================================
+   theme-monero — Monero orange on near-black.
+   
+   #FF6600 is the project's own orange; everything else is built from it
+   and from neutrals, so the palette stays recognisable without a logo.
+   The accent is deliberately the only saturated colour on screen.
+   ==================================================================== */
+
+.theme-monero {
+    background-color: #141414;
+    color: #F2F2F2;
+}
+
+/* Buttons: dark surface, orange edge, orange glow on hover. The resting
+   state keeps the border dim so a page of buttons is not a wall of
+   orange - the colour is for what you are pointing at. */
+.theme-monero button {
+    background-color: #1F1F1F;
+    background-image: none;
+    color: #F2F2F2;
+    border: 1px solid rgba(255, 102, 0, 0.38);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    padding: 6px 12px;
+    font-weight: 500;
+    transition: background-color 130ms ease-out,
+                border-color     130ms ease-out,
+                box-shadow       130ms ease-out;
+}
+.theme-monero button:hover {
+    border-color: #FF6600;
+    background-color: rgba(255, 102, 0, 0.16);
+    box-shadow: 0 0 10px rgba(255, 102, 0, 0.45);
+}
+.theme-monero button:active {
+    background-color: rgba(255, 102, 0, 0.28);
+    border-color: #FF8533;
+}
+
+/* The primary action per page. Filled rather than outlined, because two
+   equally weighted buttons is how a form becomes a guess. */
+.theme-monero button.accent {
+    background-color: #FF6600;
+    background-image: none;
+    color: #141414;
+    border-color: #FF6600;
+    font-weight: 600;
+}
+.theme-monero button.accent:hover {
+    background-color: #FF8533;
+    border-color: #FF8533;
+}
+
+.theme-monero .section-card,
+.theme-monero .module-card {
+    background-color: rgba(31, 31, 31, 0.85);
+    border: 1px solid rgba(255, 102, 0, 0.16);
+    border-radius: 7px;
+}
+.theme-monero .module-card:hover {
+    background-color: rgba(255, 102, 0, 0.10);
+    border-color: #FF6600;
+    box-shadow: 0 0 0 1px rgba(255, 102, 0, 0.40),
+                0 8px 20px rgba(255, 102, 0, 0.22);
+}
+
+.theme-monero .stats-chart {
+    background: rgba(31, 31, 31, 0.65);
+    border: 1px solid rgba(255, 102, 0, 0.18);
+}
+.theme-monero .stat-accent { background: #FF6600; }
+
+.theme-monero .sidebar { background-color: #191919; }
+.theme-monero .sidebar button:hover {
+    background-color: rgba(255, 102, 0, 0.16);
+    border-color: #FF6600;
+}
+
+.theme-monero .page-title    { color: #FF6600; }
+.theme-monero .page-subtitle { color: #9A9A9A; }
+.theme-monero .section-title { color: #FF6600; }
+
+.theme-monero entry,
+.theme-monero .module-submenu {
+    background-color: #1B1B1B;
+    color: #F2F2F2;
+    border-color: rgba(255, 102, 0, 0.25);
+}
+.theme-monero entry:focus,
+.theme-monero entry:focus-within {
+    border-color: #FF6600;
+    box-shadow: 0 0 0 1px rgba(255, 102, 0, 0.45);
+}
+
+/* Tabs and the header bar: the active one is underlined in orange rather
+   than filled, so the row stays quiet while the app is in use. */
+.theme-monero .tab-button:hover { color: #FF6600; }
+.theme-monero .tab-button:checked {
+    color: #FF6600;
+    box-shadow: inset 0 -2px 0 #FF6600;
+}

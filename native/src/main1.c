@@ -46488,7 +46488,7 @@ settings_load_into(SettingsPage *m)
    are the built-in looks; "matrix" and "ghost" are the styled themes whose
    rules live in resources/style.css under .theme-matrix / .theme-ghost. */
 static const char *const settings_theme_names[] = {
-    "dark", "light", "matrix", "ghost", NULL
+    "dark", "light", "matrix", "ghost", "monero", NULL
 };
 
 static const char *const settings_splash_names[] = { "default", "alt", NULL };
@@ -46527,11 +46527,14 @@ theme_apply_named(AppState *state, const char *name)
 
     gtk_widget_remove_css_class(state->window, "theme-matrix");
     gtk_widget_remove_css_class(state->window, "theme-ghost");
+    gtk_widget_remove_css_class(state->window, "theme-monero");
 
     if (g_strcmp0(name, "matrix") == 0)
         gtk_widget_add_css_class(state->window, "theme-matrix");
     else if (g_strcmp0(name, "ghost") == 0)
         gtk_widget_add_css_class(state->window, "theme-ghost");
+    else if (g_strcmp0(name, "monero") == 0)
+        gtk_widget_add_css_class(state->window, "theme-monero");
 
     /* Each theme carries its own effect, and the others cost nothing because
        a hidden overlay is skipped by its own tick. */
@@ -47050,7 +47053,7 @@ settings_build_appearance(AppState *state, gpointer module_data)
         "Appearance",
         "How the interface looks. The theme stylesheet is loaded from "
         "resources/style.css at startup.", &card);
-    static const char *themes[]  = { "dark", "light", "matrix", "ghost", NULL };
+    static const char *themes[]  = { "dark", "light", "matrix", "ghost", "monero", NULL };
     static const char *density[] = { "compact", "comfortable", "spacious", NULL };
     static const char *splashes[] = { "default", "alt (animated)", NULL };
 
