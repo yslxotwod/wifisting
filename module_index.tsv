@@ -20,7 +20,7 @@ MODULE	NAME	CATEGORY	VERBS	SELFTEST	HAS_INFO
 18_capture_analysis	Capture Analysis	ANALYSIS	--analyze-tsv --benchmark --check-tools --convert --convert-formats-tsv --convert-sources-tsv --correlate --crack --crack-status --crack-stop --extract --filter --filter-bssid --filter-ssid --list-aps-tsv --list-devices --list-hashes-tsv --list-pcaps-tsv --merge --selftest 	1	0
 19_wordlist_manager	Wordlist Manager	ANALYSIS	--all --allow-ambiguous --bssid --compose --compose-gz --count --delete --download --gen-isp-tsv --gen-mask-tsv --gen-osk-key-tsv --gen-sha1-serial-tsv --group --infer-pattern-tsv --install --list-tsv --meta --min-digits --min-upper --no-digits --patterns-tsv --rules-tsv --seclists-clone --seclists-list --seclists-status --seclists-update --selftest --serial --ssid --status-tsv --symbols 	1	0
 20_karma	Karma	WI-FI	--assoc-attack --harvest --info --list-ifaces-tsv --log --mana-loud --probes --selftest --start --status-tsv --stop --whitelist-add --whitelist-clear --whitelist-list 	1	1
-21_beacon_flood	Wi-Fi DoS / Flood	WI-FI	--auth-flood --generate --generate-from --list-ssids-tsv --log --michael-shutdown --selftest --set-band --set-enc --set-mode --start --status-tsv --stop --watch-clients --watch-hits-tsv --watch-reset --wids-confuse 	1	0
+21_beacon_flood	Wi-Fi DoS / Flood	WI-FI	--auth-flood --cts-flood --eapol-flood --eapol-logoff --fuzz --generate --generate-from --list-ssids-tsv --log --mesh-blackhole --mesh-flood --michael-shutdown --selftest --set-band --set-enc --set-mode --start --status-tsv --stop --vendor-poc --watch-clients --watch-hits-tsv --watch-reset --wids-confuse 	1	0
 22_wifi_direct	Wi-Fi Direct / P2P	WI-FI	--analyze --capture-start --capture-stop --info --list-devices-tsv --passive-scan --selftest --spoof-go-neg --status-tsv --wpa-find 	1	1
 23_captive_portal_builder	Portal Builder	WI-FI	--delete --install --list-portals-tsv --list-templates-tsv --render --selftest --status-tsv 	1	0
 24_bt_mesh	BLE Mesh	BLUETOOTH	--analyze-beacons --capture-prov --check-deps --extract-keys --info --list-sessions-tsv --parse-beacon --prov-decrypt --prov-ecdh --prov-encrypt --prov-keygen --prov-plan --prov-selftest --prov-session --prov-status-tsv --selftest --sniff-beacons --start-capture --status-tsv 	1	1
@@ -57,3 +57,4 @@ MODULE	NAME	CATEGORY	VERBS	SELFTEST	HAS_INFO
 55_ssid_overflow	SSID Overflow	WI-FI	(no usage text)	1	1
 57_thread	Thread	WIRELESS	(no usage text)	1	1
 58_proximity	Proximity	WIRELESS	(no usage text)	1	1
+59_wmbus	Wireless M-Bus	ANALYSIS	(no usage text)	1	1

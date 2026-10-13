@@ -1808,6 +1808,9 @@ static const ModuleDefinition modules[] = {
     { "43_nfc_rfid",       "NFC / RFID",      "PHYSICAL",
       "wifisting-43_nfc_rfid-symbolic",
       "NDEF message codec and MIFARE tag structure analysis" },
+    { "59_wmbus",          "Wireless M-Bus",  "ANALYSIS",
+      "wifisting-59_wmbus-symbolic",
+      "EN 13757 utility meter codec: envelope, CRC-16, DIF/VIF records" },
     { "45_drone_remote_id","Drone Remote ID", "PHYSICAL",
       "wifisting-45_drone_remote_id-symbolic",
       "Decode and build ASTM F3411 Remote ID messages" },
@@ -35342,6 +35345,25 @@ static const SbAction audit_actions[] = {
     { "Live",     "Scan (needs root)",  "--scan",    "",                   TRUE  },
     { "Reference","Finding codes",      "--rules-tsv", NULL,               FALSE }
 };
+static const SbAction wmbus_actions[] = {
+    { "Decode",  "Decode a frame",   "--decode",
+      "54 3d 20 44 68 2c 12 34 56 78 01 07 7a 00 00 00 00", FALSE },
+    { "Decrypt", "AES-128-CBC payload", "--decrypt",
+      "54 3d 20 44 ...  00112233445566778899aabbccddeeff", FALSE },
+    { "Status",  "What is available", "--status-tsv", NULL, FALSE },
+    { "Reference","Frame and device types", "--info", NULL, FALSE },
+};
+
+static const SbModule wmbus_def = {
+    "59_wmbus", SB_SCRIPT("59_wmbus.sh"),
+    "Wireless M-Bus",
+    "Decodes EN 13757 utility meter frames from hex - envelope, CRC-16 and "
+    "DIF/VIF meter readings. Meters broadcast in the clear at 868 MHz with "
+    "stable device IDs, so readings are linkable to a household over time. "
+    "Implements the codec rather than wrapping a tool, so it needs no radio.",
+    wmbus_actions, (int) G_N_ELEMENTS(wmbus_actions), NULL
+};
+
 static const SbModule audit_def = {
     "46_public_wifi_audit", SB_SCRIPT("46_public_wifi_audit.sh"),
     "Public Wi-Fi Audit",
@@ -35551,6 +35573,16 @@ static ModuleSubmenuEntry lora_entries[] = {
 };
 
 #include "audit_scan.c"
+
+/* Wireless M-Bus uses the shared section-B builders: the generic overview
+   plus one action-group page. It needs no bespoke page, so unlike
+   audit_scan.c there is nothing to #include here. */
+static gpointer wmbus_get_module_data(AppState *s) { return sb_make_data(s, &wmbus_def); }
+
+static ModuleSubmenuEntry wmbus_entries[] = {
+    { "Overview", "dialog-information-symbolic", sb_build_overview },
+    { "Decode",   "dialog-information-symbolic", sb_build_group0   },
+};
 
 static ModuleSubmenuEntry audit_entries[] = {
     { "Overview",  "dialog-information-symbolic", sb_build_overview },
@@ -53855,6 +53887,9 @@ main(int argc, char **argv)
         (int) G_N_ELEMENTS(geo_entries), geo_get_module_data);
     module_registry_register("44_lora_loraWAN", lora_entries,
         (int) G_N_ELEMENTS(lora_entries), lora_get_module_data);
+    module_registry_register("59_wmbus", wmbus_entries,
+        (int) G_N_ELEMENTS(wmbus_entries), wmbus_get_module_data);
+
     module_registry_register("46_public_wifi_audit", audit_entries,
         (int) G_N_ELEMENTS(audit_entries), audit_get_module_data);
     module_registry_register("42_subghz", subghz_entries,
