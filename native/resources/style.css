@@ -1,21 +1,17 @@
 /* ====================================================================
    Base surface.
 
-   The window background belongs HERE, not on a theme class. Themes are
-   additive: "dark" and "light" carry no class, so a fresh install with
-   no saved theme had nothing setting the background at all and fell
-   through to the toolkit default, which is white. That is what a live
-   USB showed - green text on a white window.
+   The window background belongs on this rule, which is the one that
+   actually applies - a second `window` block further down overrides
+   anything set earlier, so adding another one above it does nothing.
 
-   Prepended rather than appended so the theme blocks below still win.
+   This was transparent. A fresh install with no saved theme has no theme
+   class either, so nothing set the background and the toolkit default
+   showed through: green text on a white window. That is what a Mint live
+   USB looked like.
    ==================================================================== */
 window {
     background-color: #0d0f13;
-    color: #f5f5f7;
-}
-
-window {
-    background: rgba(0, 0, 0, 0);
     color: #ededf0;
     font-family: "Neuropol", "JetBrains Mono", "DejaVu Sans Mono", monospace;
 }
