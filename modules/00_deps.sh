@@ -87,6 +87,11 @@ declare -A DEPS_GROUP=(
     [unblob]=optional [cve-bin-tool]=optional [firmwalker]=optional
     [mitm6]=optional [responder]=optional [btlejack]=optional
     [hcitool]=optional [gatttool]=optional [killerbee]=optional
+
+    # Needed to build at all. Absent until a tester hit the GCC 14 build
+    # failure with nothing but cmake in the error - the table knew about
+    # every runtime tool and none of the build ones.
+    [cmake]=build [meson]=build [ninja]=build [pkg-config]=build
 )
 
 # Package name per distro for each tool. Missing entries → skip.
@@ -108,6 +113,7 @@ declare -A DEPS_APT=(
     [unblob]=unblob [cve-bin-tool]=cve-bin-tool [responder]=responder
     [mitm6]=mitm6 [btlejack]=btlejack [killerbee]=killerbee
     [firmwalker]=firmwalker
+    [cmake]=cmake [meson]=meson [ninja]=ninja-build [pkg-config]=pkg-config
 )
 
 declare -A DEPS_DNF=(
@@ -121,6 +127,7 @@ declare -A DEPS_DNF=(
     [binwalk]=binwalk [bluetoothctl]=bluez [macchanger]=macchanger
     [socat]=socat [lspci]=pciutils [unzip]=unzip [git]=git [make]=make
     [gcc]=gcc [pip3]=python3-pip
+    [cmake]=cmake [meson]=meson [ninja]=ninja-build [pkg-config]=pkgconf-pkg-config
 )
 
 declare -A DEPS_PACMAN=(
@@ -133,6 +140,7 @@ declare -A DEPS_PACMAN=(
     [wget]=wget [openssl]=openssl [binwalk]=binwalk [bluetoothctl]=bluez
     [macchanger]=macchanger [socat]=socat [lspci]=pciutils [unzip]=unzip
     [git]=git [make]=make [gcc]=gcc [pip3]=python-pip
+    [cmake]=cmake [meson]=meson [ninja]=ninja [pkg-config]=pkgconf
 )
 
 # Version floor for a few critical tools. `--check-versions` verifies these.
@@ -481,7 +489,7 @@ deps_selftest() {
     out=$(deps_status_tsv)
     chk status-rows     "$(rcount "$out")" "${#DEPS_GROUP[@]}"
     chk status-fields   "$(printf '%s\n' "$out" | awk -F'\t' 'NF!=4 || $2=="" || $3=="" || $4==""{c++} END{print c+0}')" 0
-    chk status-groups   "$(printf '%s\n' "$out" | awk -F'\t' '$3!="critical" && $3!="optional"{c++} END{print c+0}')" 0
+    chk status-groups   "$(printf '%s\n' "$out" | awk -F'\t' '$3!="critical" && $3!="optional" && $3!="build"{c++} END{print c+0}')" 0
     chk status-states   "$(printf '%s\n' "$out" | awk -F'\t' '$4!="installed" && $4!="missing"{c++} END{print c+0}')" 0
     chk status-sorted   "$(printf '%s\n' "$out" | cut -f1 | sort -c 2>/dev/null; echo $?)" 0
     local tool

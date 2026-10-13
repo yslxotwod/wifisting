@@ -448,12 +448,12 @@ wl_selftest() {
 
 
 # ── ISP default-key patterns ─────────────────────────────────────────────
-# The table lives in modules/isp_patterns.tsv as data. Every row carries its
+# The table lives in data/isp_patterns.tsv as data. Every row carries its
 # source and a confidence tag, so a hypothesis is never printed as a fact, and
 # rows whose derivation is unknown are reported as unhelpful rather than
 # silently skipped.
 
-WL_PATTERNS="$WIFISTING_ROOT/modules/isp_patterns.tsv"
+WL_PATTERNS="$WIFISTING_ROOT/data/isp_patterns.tsv"
 
 wl_patterns_tsv() {
     local want="${1:-}"

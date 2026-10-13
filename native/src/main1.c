@@ -13585,19 +13585,23 @@ bt_attack_pair_load_finished(
                      : "btmon not available — passive observation disabled.");
 }
 
-static void
+static gboolean
 bt_attack_pair_load(BtAttackPage *m)
 {
     g_autoptr(GError) error = NULL;
     const char *argv[] = { BT_ATTACK_SCRIPT, "--pair-tsv", NULL };
 
-    if (m->process != NULL) return;
+    if (m->process != NULL) return G_SOURCE_REMOVE;
     m->process = g_subprocess_newv(argv,
         G_SUBPROCESS_FLAGS_STDOUT_PIPE | G_SUBPROCESS_FLAGS_STDERR_PIPE,
         &error);
-    if (m->process == NULL) return;
+    if (m->process == NULL) return G_SOURCE_REMOVE;
     g_subprocess_communicate_utf8_async(m->process, NULL, NULL,
         bt_attack_pair_load_finished, m);
+    /* GSourceFunc must say whether to keep firing. A void
+       return leaves the register holding whatever was there, so
+       the timer may stop after one tick or keep going at random. */
+    return G_SOURCE_REMOVE;
 }
 
 static void
@@ -13643,7 +13647,7 @@ bt_attack_pair_start_clicked(GtkButton *button, gpointer user_data)
 
     wf_action_run(m->state, "06_bt_attack", "BLE pairing MITM",
                   m->pair_status, argv, TRUE);
-    g_timeout_add(1500, (GSourceFunc) bt_attack_pair_load, m);
+    g_timeout_add(1500, G_SOURCE_FUNC(bt_attack_pair_load), m);
 }
 
 static GtkWidget *
@@ -19381,20 +19385,24 @@ dot1x_cert_info_finished(
             (san && *san) ? san : "—");
 }
 
-static void
+static gboolean
 dot1x_cert_refresh_info(Dot1xPage *manager)
 {
     g_autoptr(GError) error = NULL;
     const char *argv[] = { DOT1X_SCRIPT, "--cert-info-tsv", NULL };
 
-    if (manager->process != NULL) return;
+    if (manager->process != NULL) return G_SOURCE_REMOVE;
     manager->process = g_subprocess_newv(argv,
         G_SUBPROCESS_FLAGS_STDOUT_PIPE | G_SUBPROCESS_FLAGS_STDERR_PIPE,
         &error);
-    if (manager->process == NULL) return;
+    if (manager->process == NULL) return G_SOURCE_REMOVE;
     g_subprocess_communicate_utf8_async(
         manager->process, NULL, NULL,
         dot1x_cert_info_finished, manager);
+    /* GSourceFunc must say whether to keep firing. A void
+       return leaves the register holding whatever was there, so
+       the timer may stop after one tick or keep going at random. */
+    return G_SOURCE_REMOVE;
 }
 
 static void
@@ -19426,7 +19434,7 @@ dot1x_gen_certs_finished(
             append_event(manager->state, m);
         }
     }
-    g_timeout_add(300, (GSourceFunc)dot1x_cert_refresh_info, manager);
+    g_timeout_add(300, G_SOURCE_FUNC(dot1x_cert_refresh_info), manager);
 }
 
 static void
@@ -19511,20 +19519,24 @@ dot1x_eap_get_finished(
         gtk_editable_set_text(GTK_EDITABLE(manager->eap_cn_entry), cn);
 }
 
-static void
+static gboolean
 dot1x_eap_refresh(Dot1xPage *manager)
 {
     g_autoptr(GError) error = NULL;
     const char *argv[] = { DOT1X_SCRIPT, "--eap-options-tsv", NULL };
 
-    if (manager->process != NULL) return;
+    if (manager->process != NULL) return G_SOURCE_REMOVE;
     manager->process = g_subprocess_newv(argv,
         G_SUBPROCESS_FLAGS_STDOUT_PIPE | G_SUBPROCESS_FLAGS_STDERR_PIPE,
         &error);
-    if (manager->process == NULL) return;
+    if (manager->process == NULL) return G_SOURCE_REMOVE;
     g_subprocess_communicate_utf8_async(
         manager->process, NULL, NULL,
         dot1x_eap_get_finished, manager);
+    /* GSourceFunc must say whether to keep firing. A void
+       return leaves the register holding whatever was there, so
+       the timer may stop after one tick or keep going at random. */
+    return G_SOURCE_REMOVE;
 }
 
 static void
@@ -19781,7 +19793,7 @@ dot1x_build_cert(AppState *state, gpointer module_data)
     g_signal_connect(gen_btn, "clicked",
         G_CALLBACK(dot1x_gen_certs_clicked), manager);
 
-    g_idle_add((GSourceFunc)dot1x_cert_refresh_info, manager);
+    g_idle_add(G_SOURCE_FUNC(dot1x_cert_refresh_info), manager);
 
     return page;
 }
@@ -19964,7 +19976,7 @@ dot1x_build_eap(AppState *state, gpointer module_data)
     g_signal_connect(save, "clicked",
         G_CALLBACK(dot1x_eap_save_clicked), manager);
 
-    g_idle_add((GSourceFunc)dot1x_eap_refresh, manager);
+    g_idle_add(G_SOURCE_FUNC(dot1x_eap_refresh), manager);
 
     return page;
 }
@@ -20392,19 +20404,23 @@ dot1x_rr_load_finished(
         gtk_widget_set_sensitive(m->rr_stop_btn, running);
 }
 
-static void
+static gboolean
 dot1x_rr_load(Dot1xPage *m)
 {
     g_autoptr(GError) error = NULL;
     const char *argv[] = { DOT1X_SCRIPT, "--rogue-radius-tsv", NULL };
 
-    if (m->process != NULL) return;
+    if (m->process != NULL) return G_SOURCE_REMOVE;
     m->process = g_subprocess_newv(argv,
         G_SUBPROCESS_FLAGS_STDOUT_PIPE | G_SUBPROCESS_FLAGS_STDERR_PIPE,
         &error);
-    if (m->process == NULL) return;
+    if (m->process == NULL) return G_SOURCE_REMOVE;
     g_subprocess_communicate_utf8_async(m->process, NULL, NULL,
         dot1x_rr_load_finished, m);
+    /* GSourceFunc must say whether to keep firing. A void
+       return leaves the register holding whatever was there, so
+       the timer may stop after one tick or keep going at random. */
+    return G_SOURCE_REMOVE;
 }
 
 static void
@@ -20454,7 +20470,7 @@ dot1x_rr_start_clicked(GtkButton *button, gpointer user_data)
        elevated; the script does not self-elevate. */
     wf_action_run(m->state, "13_802.1x_relay", "Start local RADIUS",
                   m->rr_status, argv, TRUE);
-    g_timeout_add(1500, (GSourceFunc) dot1x_rr_load, m);
+    g_timeout_add(1500, G_SOURCE_FUNC(dot1x_rr_load), m);
 }
 
 static void
@@ -20465,7 +20481,7 @@ dot1x_rr_stop_clicked(GtkButton *button, gpointer user_data)
     (void) button;
     wf_action_run(m->state, "13_802.1x_relay", "Stop local RADIUS",
                   m->rr_status, argv, TRUE);
-    g_timeout_add(1500, (GSourceFunc) dot1x_rr_load, m);
+    g_timeout_add(1500, G_SOURCE_FUNC(dot1x_rr_load), m);
 }
 
 static void
@@ -20619,7 +20635,7 @@ static ModuleSubmenuEntry dot1x_entries[] = {
 /*  WIRELESS IDS MODULE                                                 */
 /* ==================================================================== */
 
-static void ids_refresh(IdsPage *manager);
+static gboolean ids_refresh(IdsPage *manager);
 
 static void
 ids_page_free(gpointer data)
@@ -20672,20 +20688,24 @@ ids_overview_finished(
             (dir && *dir) ? dir : "—");
 }
 
-static void
+static gboolean
 ids_refresh(IdsPage *manager)
 {
     g_autoptr(GError) error = NULL;
     const char *argv[] = { IDS_SCRIPT, "--status-tsv", NULL };
 
-    if (manager->process != NULL) return;
+    if (manager->process != NULL) return G_SOURCE_REMOVE;
     manager->process = g_subprocess_newv(argv,
         G_SUBPROCESS_FLAGS_STDOUT_PIPE | G_SUBPROCESS_FLAGS_STDERR_PIPE,
         &error);
-    if (manager->process == NULL) return;
+    if (manager->process == NULL) return G_SOURCE_REMOVE;
     g_subprocess_communicate_utf8_async(
         manager->process, NULL, NULL,
         ids_overview_finished, manager);
+    /* GSourceFunc must say whether to keep firing. A void
+       return leaves the register holding whatever was there, so
+       the timer may stop after one tick or keep going at random. */
+    return G_SOURCE_REMOVE;
 }
 
 static void
@@ -20811,7 +20831,7 @@ ids_baseline_clicked(GtkButton *button, gpointer user_data)
                   manager->baseline_status, argv, TRUE);
 
     append_event(manager->state, "IDS baseline build started");
-    g_timeout_add_seconds(4, (GSourceFunc)ids_refresh, manager);
+    g_timeout_add_seconds(4, G_SOURCE_FUNC(ids_refresh), manager);
     module_page_set_status(manager->state, "14_wifi_ids", "Running", "status-running");
 }
 
@@ -25442,7 +25462,7 @@ static ModuleSubmenuEntry capture_entries[] = {
 /*  WORDLIST MANAGER MODULE                                             */
 /* ==================================================================== */
 
-static void wordlist_refresh(WordlistPage *manager);
+static gboolean wordlist_refresh(WordlistPage *manager);
 
 static void
 wordlist_page_free(gpointer data)
@@ -25498,20 +25518,24 @@ wordlist_overview_finished(
             (dir && *dir) ? dir : "—");
 }
 
-static void
+static gboolean
 wordlist_refresh(WordlistPage *manager)
 {
     g_autoptr(GError) error = NULL;
     const char *argv[] = { WL_SCRIPT, "--status-tsv", NULL };
 
-    if (manager->process != NULL) return;
+    if (manager->process != NULL) return G_SOURCE_REMOVE;
     manager->process = g_subprocess_newv(argv,
         G_SUBPROCESS_FLAGS_STDOUT_PIPE | G_SUBPROCESS_FLAGS_STDERR_PIPE,
         &error);
-    if (manager->process == NULL) return;
+    if (manager->process == NULL) return G_SOURCE_REMOVE;
     g_subprocess_communicate_utf8_async(
         manager->process, NULL, NULL,
         wordlist_overview_finished, manager);
+    /* GSourceFunc must say whether to keep firing. A void
+       return leaves the register holding whatever was there, so
+       the timer may stop after one tick or keep going at random. */
+    return G_SOURCE_REMOVE;
 }
 
 static void
@@ -25550,7 +25574,7 @@ wordlist_delete_one_clicked(GtkButton *button, gpointer user_data)
         append_event(manager->state, m);
     }
     show_toast(manager->state, "Wordlist deleted");
-    g_timeout_add(200, (GSourceFunc)wordlist_refresh, manager);
+    g_timeout_add(200, G_SOURCE_FUNC(wordlist_refresh), manager);
 }
 
 /* Defined further down with the other list callbacks; the per-row Details
@@ -25849,7 +25873,7 @@ wordlist_install_finished(
         show_toast(manager->state, "Wordlist installed");
         g_free(manager->downloaded_path);
         manager->downloaded_path = NULL;
-        g_timeout_add(200, (GSourceFunc)wordlist_refresh, manager);
+        g_timeout_add(200, G_SOURCE_FUNC(wordlist_refresh), manager);
     }
 }
 
@@ -26556,7 +26580,7 @@ wordlist_get_module_data(AppState *state)
 }
 
 /* Generate: ISP default-key patterns and masks.
-   The pattern data lives in modules/isp_patterns.tsv, so this page only has
+   The pattern data lives in data/isp_patterns.tsv, so this page only has
    to collect the target identifiers and hand them to the module. */
 static void
 wl_gen_run(GtkButton *button, gpointer user_data)
@@ -26802,7 +26826,7 @@ wordlist_build_generate(AppState *state, gpointer module_data)
     gtk_label_set_wrap(GTK_LABEL(title), TRUE);
     GtkWidget *subtitle = gtk_label_new(
         "Default-key patterns per ISP. The table is data "
-        "(modules/isp_patterns.tsv) and every row carries a source and a "
+        "(data/isp_patterns.tsv) and every row carries a source and a "
         "confidence tag. A mask is only offered where the length and "
         "alphabet are actually known; where no derivation is published the "
         "page says so rather than producing a guess.");
@@ -27058,7 +27082,7 @@ static ModuleSubmenuEntry wordlist_entries[] = {
 /*  KARMA MODULE                                                        */
 /* ==================================================================== */
 
-static void karma_refresh(KarmaPage *manager);
+static gboolean karma_refresh(KarmaPage *manager);
 
 static void
 karma_maybe_free(KarmaPage *manager)
@@ -27156,24 +27180,28 @@ karma_overview_finished(
     karma_maybe_free(manager);
 }
 
-static void
+static gboolean
 karma_refresh(KarmaPage *manager)
 {
     g_autoptr(GError) error = NULL;
     const char *argv[] = { KARMA_SCRIPT, "--status-tsv", NULL };
 
-    if (manager->destroyed) return;
-    if (manager->process != NULL) return;
+    if (manager->destroyed) return G_SOURCE_REMOVE;
+    if (manager->process != NULL) return G_SOURCE_REMOVE;
 
     manager->process = g_subprocess_newv(argv,
         G_SUBPROCESS_FLAGS_STDOUT_PIPE | G_SUBPROCESS_FLAGS_STDERR_PIPE,
         &error);
-    if (manager->process == NULL) return;
+    if (manager->process == NULL) return G_SOURCE_REMOVE;
 
     manager->pending_ops++;
     g_subprocess_communicate_utf8_async(
         manager->process, NULL, NULL,
         karma_overview_finished, manager);
+    /* GSourceFunc must say whether to keep firing. A void
+       return leaves the register holding whatever was there, so
+       the timer may stop after one tick or keep going at random. */
+    return G_SOURCE_REMOVE;
 }
 
 static void
@@ -27295,7 +27323,7 @@ karma_start_clicked(GtkButton *button, gpointer user_data)
     append_event(manager->state, "Karma start requested");
     g_object_unref(manager->action_process);
     manager->action_process = NULL;
-    g_timeout_add_seconds(3, (GSourceFunc)karma_refresh, manager);
+    g_timeout_add_seconds(3, G_SOURCE_FUNC(karma_refresh), manager);
     module_page_set_status(manager->state, "20_karma", "Running", "status-running");
 }
 
@@ -27829,7 +27857,7 @@ static ModuleSubmenuEntry karma_entries[] = {
 /*  BEACON FLOOD MODULE                                                 */
 /* ==================================================================== */
 
-static void beacon_flood_refresh(BeaconFloodPage *manager);
+static gboolean beacon_flood_refresh(BeaconFloodPage *manager);
 
 static void
 beacon_flood_maybe_free(BeaconFloodPage *manager)
@@ -27948,24 +27976,28 @@ beacon_flood_overview_finished(
     beacon_flood_maybe_free(manager);
 }
 
-static void
+static gboolean
 beacon_flood_refresh(BeaconFloodPage *manager)
 {
     g_autoptr(GError) error = NULL;
     const char *argv[] = { BF_SCRIPT, "--status-tsv", NULL };
 
-    if (manager->destroyed) return;
-    if (manager->process != NULL) return;
+    if (manager->destroyed) return G_SOURCE_REMOVE;
+    if (manager->process != NULL) return G_SOURCE_REMOVE;
 
     manager->process = g_subprocess_newv(argv,
         G_SUBPROCESS_FLAGS_STDOUT_PIPE | G_SUBPROCESS_FLAGS_STDERR_PIPE,
         &error);
-    if (manager->process == NULL) return;
+    if (manager->process == NULL) return G_SOURCE_REMOVE;
 
     manager->pending_ops++;
     g_subprocess_communicate_utf8_async(
         manager->process, NULL, NULL,
         beacon_flood_overview_finished, manager);
+    /* GSourceFunc must say whether to keep firing. A void
+       return leaves the register holding whatever was there, so
+       the timer may stop after one tick or keep going at random. */
+    return G_SOURCE_REMOVE;
 }
 
 static void
@@ -28200,7 +28232,7 @@ beacon_flood_start_clicked(GtkButton *button, gpointer user_data)
     append_event(manager->state, "Beacon flood start requested");
     gtk_label_set_text(GTK_LABEL(manager->flood_status), "Starting…");
     g_object_unref(proc);
-    g_timeout_add_seconds(3, (GSourceFunc)beacon_flood_refresh, manager);
+    g_timeout_add_seconds(3, G_SOURCE_FUNC(beacon_flood_refresh), manager);
     module_page_set_status(manager->state, "21_beacon_flood", "Flooding", "status-running");
 }
 
@@ -28870,7 +28902,7 @@ static ModuleSubmenuEntry beacon_flood_entries[] = {
 /*  WI-FI DIRECT / P2P MODULE                                           */
 /* ==================================================================== */
 
-static void p2p_refresh(P2pPage *manager);
+static gboolean p2p_refresh(P2pPage *manager);
 
 static void
 p2p_maybe_free(P2pPage *manager)
@@ -28958,24 +28990,28 @@ p2p_overview_finished(
     p2p_maybe_free(manager);
 }
 
-static void
+static gboolean
 p2p_refresh(P2pPage *manager)
 {
     g_autoptr(GError) error = NULL;
     const char *argv[] = { P2P_SCRIPT, "--status-tsv", NULL };
 
-    if (manager->destroyed) return;
-    if (manager->process != NULL) return;
+    if (manager->destroyed) return G_SOURCE_REMOVE;
+    if (manager->process != NULL) return G_SOURCE_REMOVE;
 
     manager->process = g_subprocess_newv(argv,
         G_SUBPROCESS_FLAGS_STDOUT_PIPE | G_SUBPROCESS_FLAGS_STDERR_PIPE,
         &error);
-    if (manager->process == NULL) return;
+    if (manager->process == NULL) return G_SOURCE_REMOVE;
 
     manager->pending_ops++;
     g_subprocess_communicate_utf8_async(
         manager->process, NULL, NULL,
         p2p_overview_finished, manager);
+    /* GSourceFunc must say whether to keep firing. A void
+       return leaves the register holding whatever was there, so
+       the timer may stop after one tick or keep going at random. */
+    return G_SOURCE_REMOVE;
 }
 
 static void
@@ -29138,7 +29174,7 @@ p2p_capture_start_clicked(GtkButton *button, gpointer user_data)
     g_object_unref(proc);
     gtk_label_set_text(GTK_LABEL(manager->capture_status), "Starting…");
     append_event(manager->state, "P2P continuous capture started");
-    g_timeout_add_seconds(3, (GSourceFunc)p2p_refresh, manager);
+    g_timeout_add_seconds(3, G_SOURCE_FUNC(p2p_refresh), manager);
     module_page_set_status(manager->state, "22_wifi_direct", "Capturing", "status-running");
 }
 
@@ -29719,7 +29755,7 @@ static ModuleSubmenuEntry p2p_entries[] = {
 /*  CAPTIVE PORTAL BUILDER MODULE                                       */
 /* ==================================================================== */
 
-static void portal_refresh(PortalPage *manager);
+static gboolean portal_refresh(PortalPage *manager);
 
 static void
 portal_page_free(gpointer data)
@@ -29776,20 +29812,24 @@ portal_overview_finished(
             (odir && *odir) ? odir : "—");
 }
 
-static void
+static gboolean
 portal_refresh(PortalPage *manager)
 {
     g_autoptr(GError) error = NULL;
     const char *argv[] = { PORTAL_SCRIPT, "--status-tsv", NULL };
 
-    if (manager->process != NULL) return;
+    if (manager->process != NULL) return G_SOURCE_REMOVE;
     manager->process = g_subprocess_newv(argv,
         G_SUBPROCESS_FLAGS_STDOUT_PIPE | G_SUBPROCESS_FLAGS_STDERR_PIPE,
         &error);
-    if (manager->process == NULL) return;
+    if (manager->process == NULL) return G_SOURCE_REMOVE;
     g_subprocess_communicate_utf8_async(
         manager->process, NULL, NULL,
         portal_overview_finished, manager);
+    /* GSourceFunc must say whether to keep firing. A void
+       return leaves the register holding whatever was there, so
+       the timer may stop after one tick or keep going at random. */
+    return G_SOURCE_REMOVE;
 }
 
 static void
@@ -29839,20 +29879,24 @@ portal_templates_finished(
     gtk_drop_down_set_selected(GTK_DROP_DOWN(manager->render_template_dd), 0);
 }
 
-static void
+static gboolean
 portal_load_templates(PortalPage *manager)
 {
     g_autoptr(GError) error = NULL;
     const char *argv[] = { PORTAL_SCRIPT, "--list-templates-tsv", NULL };
 
-    if (manager->process != NULL) return;
+    if (manager->process != NULL) return G_SOURCE_REMOVE;
     manager->process = g_subprocess_newv(argv,
         G_SUBPROCESS_FLAGS_STDOUT_PIPE | G_SUBPROCESS_FLAGS_STDERR_PIPE,
         &error);
-    if (manager->process == NULL) return;
+    if (manager->process == NULL) return G_SOURCE_REMOVE;
     g_subprocess_communicate_utf8_async(
         manager->process, NULL, NULL,
         portal_templates_finished, manager);
+    /* GSourceFunc must say whether to keep firing. A void
+       return leaves the register holding whatever was there, so
+       the timer may stop after one tick or keep going at random. */
+    return G_SOURCE_REMOVE;
 }
 
 static void
@@ -30001,7 +30045,7 @@ portal_delete_one_clicked(GtkButton *button, gpointer user_data)
         g_autofree char *m = g_strdup_printf("Deleted portal '%s'", name);
         append_event(manager->state, m);
     }
-    g_timeout_add(200, (GSourceFunc)portal_refresh, manager);
+    g_timeout_add(200, G_SOURCE_FUNC(portal_refresh), manager);
 }
 
 static void
@@ -30327,7 +30371,7 @@ portal_build_render(AppState *state, gpointer module_data)
     g_signal_connect(render, "clicked",
         G_CALLBACK(portal_render_clicked), manager);
 
-    g_idle_add((GSourceFunc)portal_load_templates, manager);
+    g_idle_add(G_SOURCE_FUNC(portal_load_templates), manager);
 
     return page;
 }
