@@ -58,3 +58,4 @@ MODULE	NAME	CATEGORY	VERBS	SELFTEST	HAS_INFO
 57_thread	Thread	WIRELESS	(no usage text)	1	1
 58_proximity	Proximity	WIRELESS	(no usage text)	1	1
 59_wmbus	Wireless M-Bus	ANALYSIS	(no usage text)	1	1
+60_wifi_cve	Wi-Fi CVE Attacks	WI-FI	(no usage text)	1	1
