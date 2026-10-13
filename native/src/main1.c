@@ -46217,6 +46217,7 @@ settings_get_int(GKeyFile *kf, const char *key, gint def)
    above selects the dropdown by name. */
 static void theme_apply(AppState *state);
 static guint settings_splash_index(const char *name);
+static gchar *wf_version_label(void);
 static void theme_apply_named(AppState *state, const char *name);
 static const char *settings_theme_name(guint idx);
 static guint settings_theme_index(const char *name);
@@ -52294,7 +52295,7 @@ create_header(AppState *state)
 {
     GtkWidget *header = gtk_header_bar_new();
     GtkWidget *title =
-        gtk_label_new("wifisting GUI");
+        gtk_label_new(wf_version_label());
     GtkWidget *terminal =
         gtk_button_new_from_icon_name("utilities-terminal-symbolic");
     GtkWidget *bg_button =
@@ -52527,6 +52528,24 @@ splash_gif_tick(gpointer user_data)
 
     state->splash_anim_src = g_timeout_add((guint) delay, splash_gif_tick, state);
     return G_SOURCE_REMOVE;
+}
+
+/* "wifisting v1.0.0", read from the top-level VERSION file.
+ *
+ * Read at runtime rather than compiled in: the CLI reads the same file, so
+ * they cannot disagree, and bumping the version needs no rebuild.
+ */
+static gchar *
+wf_version_label(void)
+{
+    g_autofree gchar *contents = NULL;
+
+    if (g_file_get_contents(wf_path("VERSION"), &contents, NULL, NULL)) {
+        g_strstrip(contents);
+        if (*contents != '\0')
+            return g_strdup_printf("wifisting v%s", contents);
+    }
+    return g_strdup("wifisting");
 }
 
 static void
