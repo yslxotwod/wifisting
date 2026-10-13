@@ -1,3 +1,19 @@
+/* ====================================================================
+   Base surface.
+
+   The window background belongs HERE, not on a theme class. Themes are
+   additive: "dark" and "light" carry no class, so a fresh install with
+   no saved theme had nothing setting the background at all and fell
+   through to the toolkit default, which is white. That is what a live
+   USB showed - green text on a white window.
+
+   Prepended rather than appended so the theme blocks below still win.
+   ==================================================================== */
+window {
+    background-color: #0d0f13;
+    color: #f5f5f7;
+}
+
 window {
     background: rgba(0, 0, 0, 0);
     color: #ededf0;

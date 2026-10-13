@@ -53,13 +53,39 @@ deps_detect_distro() {
     fi
 }
 
+# ID_LIKE names the families a derivative belongs to. Linux Mint reports
+# "ubuntu debian", so matching on it covers every Debian and Ubuntu
+# derivative without enumerating them. Enumerating is how Mint ended up
+# unsupported while being one of the most installed desktops there is.
+deps_detect_like() {
+    if [[ -f /etc/os-release ]]; then
+        # shellcheck disable=SC1091
+        . /etc/os-release
+        printf '%s' "${ID_LIKE:-}"
+    fi
+}
+
 deps_pkg_manager() {
-    case "$(deps_detect_distro)" in
-        debian|ubuntu|kali|parrot|raspbian) echo "apt" ;;
-        fedora|rhel|centos|rocky|alma)     echo "dnf" ;;
-        arch|manjaro|endeavouros)          echo "pacman" ;;
-        alpine)                            echo "apk" ;;
-        *)                                 echo "unknown" ;;
+    local id like
+    id="$(deps_detect_distro)"
+    like="$(deps_detect_like)"
+
+    case "$id" in
+        debian|ubuntu|kali|parrot|raspbian|linuxmint|lmde|pop|elementary|zorin|neon|devuan|mx|antix|deepin|bodhi) echo "apt" ;;
+        fedora|rhel|centos|rocky|alma|nobara)      echo "dnf" ;;
+        arch|manjaro|endeavouros|garuda|artix)     echo "pacman" ;;
+        opensuse*|sles|sled)                       echo "zypper" ;;
+        alpine)                                    echo "apk" ;;
+        *)
+            # An unknown derivative still shares its parent's package
+            # manager, so fall back to the family before giving up.
+            case "$like" in
+                *debian*|*ubuntu*) echo "apt" ;;
+                *fedora*|*rhel*)   echo "dnf" ;;
+                *arch*)            echo "pacman" ;;
+                *suse*)            echo "zypper" ;;
+                *)                 echo "unknown" ;;
+            esac ;;
     esac
 }
 
