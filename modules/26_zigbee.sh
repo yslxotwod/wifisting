@@ -114,7 +114,11 @@ zb_sniff() {
         return 1
     }
     command -v zbdump >/dev/null 2>&1 || {
-        printf 'ERROR\tzbdump not installed (killerbee suite)\n' >&2
+        # KillerBee has had no upstream commit since 2022-08. Name the
+        # successor rather than sending people to an abandoned project.
+        printf 'ERROR\tzbdump not installed (KillerBee suite, unmaintained since 2022-08)\n' >&2
+        printf 'NOTE\tSee ESP32-KillerBee for a live replacement on ~$8 ESP32 hardware:\n' >&2
+        printf 'NOTE\thttps://github.com/RockBase-iot/ESP32-KillerBee\n' >&2
         return 1
     }
 

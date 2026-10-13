@@ -85,8 +85,11 @@ declare -A DEPS_GROUP=(
     [macchanger]=optional [socat]=optional [lspci]=optional [unzip]=optional
     [git]=optional [make]=optional [gcc]=optional [pip3]=optional
     [unblob]=optional [cve-bin-tool]=optional [firmwalker]=optional
+    # btlejack has had no upstream commit since 2024-08. Kept because it
+    # still runs; Sniffle is the maintained alternative and does the same
+    # job on a ~$15 Sonoff CC2652P dongle.
     [mitm6]=optional [responder]=optional [btlejack]=optional
-    [hcitool]=optional [gatttool]=optional [killerbee]=optional
+    [hcitool]=optional [gatttool]=optional [killerbee]=optional [sniffle]=optional
 
     # Needed to build at all. Absent until a tester hit the GCC 14 build
     # failure with nothing but cmake in the error - the table knew about
@@ -111,6 +114,9 @@ declare -A DEPS_APT=(
     [macchanger]=macchanger [socat]=socat [lspci]=pciutils [unzip]=unzip
     [git]=git [make]=make [gcc]=gcc [pip3]=python3-pip
     [unblob]=unblob [cve-bin-tool]=cve-bin-tool [responder]=responder
+    # Both of these are unmaintained: killerbee since 2022-08, btlejack
+    # since 2024-08. ESP32-KillerBee (~$8 ESP32) and Sniffle ($15 CC2652P)
+    # are the live replacements.
     [mitm6]=mitm6 [btlejack]=btlejack [killerbee]=killerbee
     [firmwalker]=firmwalker
     [cmake]=cmake [meson]=meson [ninja]=ninja-build [pkg-config]=pkg-config
@@ -180,6 +186,14 @@ declare -A DEPS_MIN_VERSION=(
     [hostapd]="2.6"
     [tshark]="3.6"
     [unblob]="22.0"
+    # Build tools. --check-versions iterates this table, not DEPS_GROUP,
+    # so cmake/meson/ninja were invisible to it even after being added to
+    # the status view. All three answer --version, which the default case
+    # in deps_tool_version already parses.
+    [cmake]="3.20"
+    [meson]="0.60"
+    [ninja]="1.10"
+    [pkg-config]="0.29"
 )
 
 deps_pkg_for() {

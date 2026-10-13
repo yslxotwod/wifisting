@@ -164,7 +164,9 @@ wifi_cve_install_deps() {
 
     # dragonslayer (WPA3 EAP-pwd)
     if [[ ! -d "$WIFI_CVE_EXT/dragonslayer" ]]; then
-        info "cloning dragonslayer..."
+        # Upstream last committed 2019-04. The SAE/EAP-pwd technique is
+        # still valid; the tool is not maintained, so expect to patch it.
+        info "cloning dragonslayer (unmaintained since 2019-04)..."
         git clone https://github.com/vanhoefm/dragonslayer.git \
             "$WIFI_CVE_EXT/dragonslayer"
     fi
