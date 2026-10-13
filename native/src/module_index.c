@@ -70,7 +70,6 @@ static const ModuleIndexEntry module_index[] = {
     { "57_thread", "Thread", "WIRELESS", "(no usage text)", "Thread (802.15.4) network analysis\nSame radio as Zigbee. Matter runs over Thread.\nA border router bridges the mesh to the LAN and leaks its prefix.\nOffline pcap analysis works without hardware.", TRUE },
     { "58_proximity", "Proximity", "WIRELESS", "(no usage text)", "Presence watch: act when a device arrives or leaves.\nWatches Wi-Fi probe requests and Bluetooth inquiry.\nRuns for hours and holds state, unlike every other module.\nAuthorised use only - watching for a device is surveillance.", TRUE },
     { "59_wmbus", "Wireless M-Bus", "ANALYSIS", "(no usage text)", "Wireless M-Bus (EN 13757) frame codec.\nMeters broadcast readings at 868 MHz with no authentication.\nDecodes from hex: envelope, CRC-16, DIF/VIF records, AES payloads.\nNo radio needed - pair with rtl_433 or rtl_wmbus for capture.\nPassive receive only. Reading a neighbour's meter is a privacy matter.", TRUE },
-    { "60_wifi_cve", "Wi-Fi CVE Attacks", "WI-FI", "(no usage text)", "Offensive Wi-Fi CVEs. Attacks, not scanners.\n  CVE-2023-52424  SSID Confusion - client joins the wrong network unknowingly\n  CVE-2023-52160  wpa_supplicant PEAP bypass - auto-join, no password\n  CVE-2024-41992  wfa_dut command injection - root RCE on the AP, over TCP\nDeliberately excluded: CVE-2023-52161, the IWD AP-mode bypass.\nAuthorised testing only.", TRUE },
 };
 
 #define MODULE_INDEX_N ((int) G_N_ELEMENTS(module_index))
