@@ -2074,3 +2074,112 @@ textview.event-view > text,
     color: #FF6600;
     box-shadow: inset 0 -2px 0 #FF6600;
 }
+
+/* ====================================================================
+   theme-terminal — amber phosphor on black.
+
+   The other classic terminal look, and deliberately not green: "matrix"
+   already owns green, and two green themes would be one theme with a
+   different name. Amber is what a monochrome CRT actually used, because
+   P3 phosphor lasted longer than the green alternative.
+
+   The palette is narrow on purpose. A real terminal had one colour and
+   brightness did the rest of the work, so hierarchy here comes from
+   opacity and weight rather than hue.
+   ==================================================================== */
+
+.theme-terminal {
+    background-color: #0A0A0A;
+    color: #E8B860;
+}
+
+.theme-terminal button {
+    background-color: #141414;
+    background-image: none;
+    color: #E8B860;
+    border: 1px solid rgba(255, 176, 0, 0.32);
+    border-radius: 4px;
+    box-shadow: none;
+    padding: 6px 12px;
+    font-weight: 500;
+    transition: background-color 120ms ease-out,
+                border-color     120ms ease-out,
+                box-shadow       120ms ease-out;
+}
+.theme-terminal button:hover {
+    border-color: #FFB000;
+    background-color: rgba(255, 176, 0, 0.14);
+    box-shadow: 0 0 8px rgba(255, 176, 0, 0.35);
+}
+.theme-terminal button:active {
+    background-color: rgba(255, 176, 0, 0.24);
+}
+
+/* Primary action: filled amber, black text. Same logic as the other
+   themes - one filled button per page, everything else outlined. */
+.theme-terminal button.accent {
+    background-color: #FFB000;
+    background-image: none;
+    color: #0A0A0A;
+    border-color: #FFB000;
+    font-weight: 600;
+}
+.theme-terminal button.accent:hover {
+    background-color: #FFC333;
+    box-shadow: 0 0 12px rgba(255, 176, 0, 0.55);
+}
+
+/* Squarer than the other themes. Terminals had no rounded corners, and
+   the harder edge is most of what makes a UI read as one. */
+.theme-terminal .section-card,
+.theme-terminal .module-card {
+    background-color: rgba(20, 20, 20, 0.85);
+    border: 1px solid rgba(255, 176, 0, 0.18);
+    border-radius: 2px;
+}
+.theme-terminal .module-card:hover {
+    background-color: rgba(255, 176, 0, 0.09);
+    border-color: #FFB000;
+    box-shadow: 0 0 0 1px rgba(255, 176, 0, 0.38),
+                0 0 16px rgba(255, 176, 0, 0.20);
+    border-radius: 2px;
+}
+
+.theme-terminal .stats-chart {
+    background: rgba(20, 20, 20, 0.6);
+    border: 1px solid rgba(255, 176, 0, 0.16);
+    border-radius: 2px;
+}
+.theme-terminal .stat-accent { background: #FFB000; }
+
+.theme-terminal .sidebar { background-color: #0D0D0D; }
+.theme-terminal .sidebar button:hover {
+    background-color: rgba(255, 176, 0, 0.14);
+    border-color: #FFB000;
+}
+
+/* Titles in near-white amber rather than full amber: a wall of #FFB000
+   at heading size is hard to read, and the brightness should come from
+   the accent elements, not the text. */
+.theme-terminal .page-title    { color: #FFC333; }
+.theme-terminal .page-subtitle { color: #8A6A2E; }
+.theme-terminal .section-title { color: #FFB000; }
+
+.theme-terminal entry,
+.theme-terminal .module-submenu {
+    background-color: #111111;
+    color: #E8B860;
+    border: 1px solid rgba(255, 176, 0, 0.22);
+    border-radius: 2px;
+}
+.theme-terminal entry:focus,
+.theme-terminal entry:focus-within {
+    border-color: #FFB000;
+    box-shadow: 0 0 0 1px rgba(255, 176, 0, 0.40);
+}
+
+.theme-terminal .tab-button:hover { color: #FFB000; }
+.theme-terminal .tab-button:checked {
+    color: #FFB000;
+    box-shadow: inset 0 -2px 0 #FFB000;
+}
