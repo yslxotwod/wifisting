@@ -52493,16 +52493,19 @@ static void
 load_css(void)
 {
     GtkCssProvider *provider = gtk_css_provider_new();
-    g_autofree char *disk = g_build_filename(
-        g_get_home_dir(), "wifisting/native/resources/style.css", NULL);
+    /* The runtime project root, not a hardcoded ~/wifisting. That path
+       survived from before the self-locating refactor, so any checkout
+       other than the original loaded the ORIGINAL stylesheet - every CSS
+       change made in a second checkout was invisible, and the theme
+       silently came from a tree the user was not running. */
     g_autofree char *local = g_build_filename(
         PROJECT_DIR, "native/resources/style.css", NULL);
 
     /* Prefer the on-disk CSS so edits take effect without a rebuild.
+       Resolved against the project root, so it is the stylesheet that
+       belongs to the build actually running.
        Fall back to the compiled resource if neither path exists. */
-    if (g_file_test(disk, G_FILE_TEST_IS_REGULAR)) {
-        gtk_css_provider_load_from_path(provider, disk);
-    } else if (g_file_test(local, G_FILE_TEST_IS_REGULAR)) {
+    if (g_file_test(local, G_FILE_TEST_IS_REGULAR)) {
         gtk_css_provider_load_from_path(provider, local);
     } else {
         gtk_css_provider_load_from_resource(
