@@ -2183,3 +2183,92 @@ textview.event-view > text,
     color: #FFB000;
     box-shadow: inset 0 -2px 0 #FFB000;
 }
+
+/* ====================================================================
+   Theme completeness: the tile's children.
+
+   Every theme block above overrode .module-card but not the elements
+   inside it, so the icon and the category label kept the default red
+   while the card around them changed. A theme that only reaches the
+   container is worse than none - it looks broken rather than unthemed.
+   ==================================================================== */
+
+.theme-monero .module-card-icon     { color: #FF6600; }
+.theme-monero .module-card-category { color: #A8551A; }
+.theme-monero .module-card-title    { color: #F2F2F2; }
+.theme-monero .module-card-star     { color: #7A4A20; }
+
+.theme-terminal .module-card-icon     { color: #FFB000; }
+.theme-terminal .module-card-category { color: #8A6A2E; }
+.theme-terminal .module-card-title    { color: #E8B860; }
+.theme-terminal .module-card-star     { color: #6B5024; }
+
+/* ====================================================================
+   Shapes.
+   
+   Colour alone does not make an interface feel different; the geometry
+   does most of the work. These give each theme a silhouette rather than
+   a tint.
+   ==================================================================== */
+
+/* Monero: soft, rounded, with a full ring on hover. Reads as a card you
+   pick up. */
+.theme-monero .module-card {
+    border-radius: 12px;
+    padding: 12px;
+}
+.theme-monero button {
+    border-radius: 10px;
+    padding: 7px 14px;
+}
+.theme-monero .tab-button:checked {
+    border-radius: 6px 6px 0 0;
+    background-color: rgba(255, 102, 0, 0.10);
+}
+
+/* Terminal: square, with a left accent bar instead of a full border.
+   The bar is the tell - a terminal cursor sits at the left edge, and a
+   coloured strip there reads as one without drawing a cursor. */
+.theme-terminal .module-card {
+    border-radius: 0;
+    border-left: 3px solid rgba(255, 176, 0, 0.30);
+    border-top-color: rgba(255, 176, 0, 0.10);
+    border-right-color: rgba(255, 176, 0, 0.10);
+    border-bottom-color: rgba(255, 176, 0, 0.10);
+    padding: 10px 12px;
+}
+.theme-terminal .module-card:hover {
+    border-left-color: #FFB000;
+    border-left-width: 3px;
+    border-radius: 0;
+}
+.theme-terminal button {
+    border-radius: 0;
+    padding: 7px 14px;
+    border-left: 3px solid rgba(255, 176, 0, 0.45);
+}
+.theme-terminal button:hover {
+    border-left-color: #FFB000;
+    border-left-width: 3px;
+}
+.theme-terminal button.accent {
+    border-left: 3px solid #FFB000;
+}
+/* Tabs: squared off with a hard underline, the way a terminal's status
+   row is a row of cells rather than a set of pills. */
+.theme-terminal .tab-button {
+    border-radius: 0;
+    padding: 6px 14px;
+}
+.theme-terminal .tab-button:checked {
+    background-color: rgba(255, 176, 0, 0.08);
+    box-shadow: inset 0 -3px 0 #FFB000;
+}
+.theme-terminal .section-card {
+    border-radius: 0;
+    border-left: 3px solid rgba(255, 176, 0, 0.22);
+}
+.theme-terminal entry {
+    border-radius: 0;
+    border-left: 3px solid rgba(255, 176, 0, 0.30);
+}
