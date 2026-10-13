@@ -236,10 +236,10 @@ It will not run natively on Windows — see [Windows](#windows) below.
 
 ```bash
 # Debian / Ubuntu
-sudo apt install build-essential meson ninja-build libgtk-4-dev python3-scapy
+sudo apt install build-essential meson ninja-build cmake libgtk-4-dev libvte-2.91-gtk4-dev python3-scapy
 
 # Arch
-sudo pacman -S base-devel meson ninja gtk4 python-scapy
+sudo pacman -S base-devel meson ninja cmake gtk4 vte4 python-scapy
 ```
 
 If the build fails, the error names the missing dependency. Install it and

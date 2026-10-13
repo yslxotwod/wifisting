@@ -36946,7 +36946,7 @@ update_audit_start_clicked(GtkButton *b, gpointer ud)
 
     if (p->running) return;
 
-    iface = arp_http_iface_picked(p);
+    iface = gtk_editable_get_text(GTK_EDITABLE(p->iface_entry));
     if (!iface || !*iface) {
         show_toast_module(p->state, "27_firmware_iot",
                           "Interface required", "warn");
