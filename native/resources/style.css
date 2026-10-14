@@ -676,13 +676,17 @@ terminal {
 }
 
 .module-card-icon {
-    color: #ff2147;
+    /* The bundled icons carry their own fill, because a resource-loaded SVG
+       is a plain image and cannot be recoloured by `color` - that is why
+       they rendered black-on-dark for so long. Resting/hover contrast is
+       done with opacity, which does apply. */
+    opacity: 0.6;
     margin-top: 2px;
     margin-bottom: 2px;
 }
 
 .module-card:hover .module-card-icon {
-    color: #ffffff;
+    opacity: 1;
 }
 
 /* ---------- section cards ---------- */
