@@ -59,15 +59,27 @@ recon_prepare() {
 }
 
 recon_require_mon() {
+    local recorded=0
     if [[ -z "${MON_IFACE:-}" && -f "$TMP_DIR/mon_iface" ]]; then
         MON_IFACE=$(<"$TMP_DIR/mon_iface")
         export MON_IFACE
+        recorded=1
     fi
     if [[ -z "${MON_IFACE:-}" ]]; then
         MON_IFACE=$(iw dev 2>/dev/null | awk '
             /Interface/ { interface_name = $2 }
             /type monitor/ { print interface_name; exit }')
         [[ -n "$MON_IFACE" ]] && export MON_IFACE
+        # Say so out loud. Silently adopting whichever adapter happens to be
+        # in monitor mode is how a scan the operator aimed at one card ran on
+        # another and then failed with a lock error naming a device they
+        # never picked.
+        if [[ -n "$MON_IFACE" ]]; then
+            info "no monitor interface was set up; using $MON_IFACE, already in monitor mode"
+            info "if that is not the adapter you selected, run 'enable monitor mode' on it first"
+        fi
+    elif [[ "$recorded" -eq 1 ]]; then
+        info "monitor interface from interface setup: $MON_IFACE"
     fi
     [[ -z "${MON_IFACE:-}" ]] && {
         err "monitor interface not set — enable monitor mode in iface menu"
@@ -549,7 +561,26 @@ def atomic_write(path, value):
         with os.fdopen(fd, "w", encoding="utf-8") as h:
             json.dump(value, h, ensure_ascii=False, indent=2); h.write("\n")
             h.flush(); os.fsync(h.fileno())
-        os.chmod(tmp, 0o600)
+        # This scan runs under pkexec/sudo, so the file is written by root,
+        # but the GUI reads it as the operator. A root-only state file means
+        # the GUI can never see the scan it just launched: it reports 0 APs
+        # while the CSV on disk is full. So keep it readable, and when there
+        # is no previous owner to inherit, hand it to whoever invoked us
+        # (PKEXEC_UID/SUDO_UID) instead of leaving it owned by root - which
+        # is sticky, because every later run would then inherit root again.
+        os.chmod(tmp, 0o644)
+        if prev_uid < 0:
+            raw = os.environ.get("PKEXEC_UID") or os.environ.get("SUDO_UID")
+            try:
+                prev_uid = int(raw) if raw else -1
+            except (TypeError, ValueError):
+                prev_uid = -1
+            if prev_uid >= 0:
+                try:
+                    import pwd
+                    prev_gid = pwd.getpwuid(prev_uid).pw_gid
+                except (KeyError, ImportError):
+                    prev_gid = -1
         if prev_uid >= 0:
             try: os.chown(tmp, prev_uid, prev_gid)
             except (PermissionError, OSError): pass

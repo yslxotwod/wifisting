@@ -254,17 +254,48 @@ iface_monitor_on() {
     fi
     iface_kill_conflicts
     info "putting $SELECTED_IFACE into monitor mode"
+
+    # Interfaces present before the switch, so one CREATED by airmon-ng below
+    # can be told apart from one that merely already existed.
+    local before after type newmon
+    before=$(iw dev 2>/dev/null | awk '/Interface/ {print $2}' | sort)
+
     ip link set "$SELECTED_IFACE" down
-    iw dev "$SELECTED_IFACE" set type monitor 2>/dev/null || airmon-ng start "$SELECTED_IFACE"
-    ip link set "$SELECTED_IFACE" up
-    local type
+    iw dev "$SELECTED_IFACE" set type monitor 2>/dev/null || \
+        airmon-ng start "$SELECTED_IFACE" >/dev/null 2>&1
+    ip link set "$SELECTED_IFACE" up 2>/dev/null || true
+
     type=$(iw dev "$SELECTED_IFACE" info 2>/dev/null | awk '/type/ {print $2}')
+    MON_IFACE=""
     if [[ "$type" == "monitor" ]]; then
         MON_IFACE="$SELECTED_IFACE"
+    else
+        # airmon-ng does NOT convert in place on every driver. On ath9k_htc
+        # and others it creates a NEW interface (wlan0mon / <iface>mon) and
+        # leaves the original managed. Testing only $SELECTED_IFACE therefore
+        # reported "failed to enter monitor mode" for an adapter that was in
+        # monitor mode under another name - and recon, which falls back to
+        # "first interface already in monitor mode", silently used a
+        # DIFFERENT adapter (an Intel card here). Look for a monitor
+        # interface that actually appeared.
+        after=$(iw dev 2>/dev/null | awk '/Interface/ {print $2}' | sort)
+        newmon=$(comm -13 <(printf '%s\n' "$before") <(printf '%s\n' "$after") \
+                 | while read -r c; do
+                       [[ -n "$c" ]] || continue
+                       [[ "$(iw dev "$c" info 2>/dev/null | awk '/type/ {print $2}')" == "monitor" ]] \
+                           && echo "$c"
+                   done | head -n1)
+        MON_IFACE="$newmon"
+    fi
+
+    if [[ -n "$MON_IFACE" ]]; then
         printf '%s\n' "$MON_IFACE" > "$TMP_DIR/mon_iface"
         ok "monitor mode active on $MON_IFACE"
     else
-        err "failed to enter monitor mode (type=$type)"
+        # Deliberately NOT falling back to "any monitor interface": that is
+        # what made a scan run on an adapter the operator never selected.
+        err "failed to enter monitor mode on $SELECTED_IFACE (type=$type)"
+        return 1
     fi
 }
 
