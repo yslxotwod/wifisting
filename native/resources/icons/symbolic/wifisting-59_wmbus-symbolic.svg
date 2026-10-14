@@ -4,7 +4,7 @@
 <!-- Wireless M-Bus: a utility meter face. The ring is the meter body,
      the needle is the dial, and the three ticks are the scale. Drawn as
      filled paths so the theme can recolour it via currentColor. -->
-<g fill="#ffffff" stroke="none">
+<g fill="#ff2147" stroke="none">
 
   <!-- Meter body: a ring, outer radius 190, inner 148. Even-odd so the
        inner circle punches the hole. -->
