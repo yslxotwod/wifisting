@@ -45604,8 +45604,7 @@ static GtkWidget *
 module_page_build_header(ModulePage *mp)
 {
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
-    GtkWidget *icon =
-        gtk_image_new_from_icon_name(mp->module->icon);
+    GtkWidget *icon = wf_icon_image(mp->module->icon);
     GtkWidget *title = gtk_label_new(mp->module->name);
     GtkWidget *category = gtk_label_new(mp->module->category);
     GtkWidget *pill = gtk_label_new("Idle");
@@ -45649,7 +45648,7 @@ module_page_build_submenu(ModulePage *mp)
         GtkWidget *row_box =
             gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
         GtkWidget *icon =
-            gtk_image_new_from_icon_name(mp->entries[i].icon);
+            wf_icon_image(mp->entries[i].icon);
         GtkWidget *label = gtk_label_new(mp->entries[i].name);
 
         gtk_widget_add_css_class(row, "module-submenu-row");
@@ -45796,8 +45795,7 @@ static GtkWidget *
 create_placeholder_page(const ModuleDefinition *module)
 {
     GtkWidget *page = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
-    GtkWidget *icon =
-        gtk_image_new_from_icon_name(module->icon);
+    GtkWidget *icon = wf_icon_image(module->icon);
     GtkWidget *title = gtk_label_new(module->name);
     GtkWidget *module_id = gtk_label_new(module->id);
     GtkWidget *description = gtk_label_new(
@@ -48585,7 +48583,7 @@ create_sidebar(AppState *state)
 
                     button = gtk_button_new();
                     row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 7);
-                    icon = gtk_image_new_from_icon_name(modules[k].icon);
+                    icon = wf_icon_image(modules[k].icon);
                     label = gtk_label_new(modules[k].name);
 
                     {
@@ -48909,7 +48907,7 @@ dashboard_populate(AppState *state)
         GtkWidget *category = gtk_label_new(mod->category);
         GtkWidget *star = gtk_label_new(
             favorites_contains(state, mod->id) ? "\u2605" : "\u2606");
-        GtkWidget *icon = gtk_image_new_from_icon_name(mod->icon);
+        GtkWidget *icon = wf_icon_image(mod->icon);
         GtkWidget *name = gtk_label_new(mod->name);
         gboolean is_fav = favorites_contains(state, mod->id);
 
