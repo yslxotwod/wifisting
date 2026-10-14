@@ -77,14 +77,28 @@ Or, from the menu: search "wifisting".
 
 ## First-run setup
 
-Open **Dependency Manager** → **Install Missing**. It uses pkexec and
-will prompt for your password once. This pulls aircrack-ng, hashcat,
-bettercap, and the rest of the wireless tool stack.
+Install the polkit rule once. Without it every privileged action - start or
+stop a scan, launch an attack, install a dependency - stops for a password,
+and a scan that does run is written as root and cannot be read back by the
+GUI, which then reports zero results for a scan that worked:
 
-If pkexec doesn't prompt, install a polkit agent:
+    sudo tools/install-polkit-rule.sh
 
-    sudo apt install policykit-1-gnome     # GNOME
-    sudo apt install lxpolkit              # LXDE / minimal WMs
+One install covers every user on the machine. It allows pkexec only for
+`.sh` files inside a modules/ directory of a wifisting checkout under the
+invoking user's home.
+
+Then open **Dependency Manager** → **Install Missing**. This pulls
+aircrack-ng, hashcat, bettercap, and the rest of the wireless tool stack.
+
+If a password prompt still appears where you did not expect one, check that
+the rule landed (polkitd reads the directory as root):
+
+    sudo tools/install-polkit-rule.sh     # reports "already installed" if it did
+    sudo systemctl restart polkit
+
+A polkit agent (policykit-1-gnome, lxpolkit) is only needed if you would
+rather answer prompts than skip them.
 
 ## CLI
 

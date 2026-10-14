@@ -1,28 +1,37 @@
 // 49-wifisting.rules
-// Auto-allow pkexec for wifisting module scripts, so the GUI does not stop
-// to ask for a password on every privileged action (start/stop scan, etc).
+// Auto-allow pkexec for wifisting module scripts, for EVERY user, so the GUI
+// does not stop for a password on each privileged action (start/stop scan,
+// attacks, dependency installs).
 //
-// Install with:
+// Install once, as root:
+//   sudo tools/install-polkit-rule.sh
+// or, by hand:
 //   sudo install -m 0644 tools/49-wifisting.rules /etc/polkit-1/rules.d/
 //
+// One installed copy serves every user on the machine: the rule reads
+// subject.user at decision time instead of naming a home directory. An
+// earlier version hardcoded /home/ysl, so every other user - and any checkout
+// outside that one path - still got prompted on every action.
+//
 // polkitd watches rules.d with inotify and picks a new file up by itself, so
-// there is normally nothing to reload. If a change is not taking effect, use
-// `sudo systemctl restart polkit` (polkit has no reload verb) or
-// `sudo pkill -HUP polkitd`.
+// there is normally nothing to reload. If a change is not taking effect:
+//   sudo systemctl restart polkit      (polkit has no reload verb)
+//   sudo pkill -HUP polkitd
 //
-// WHY THIS FILE EXISTS / CHANGED
-// The previous rule matched the literal substring "/wifisting/modules/".
-// That matches a checkout at ~/wifisting but NOT ~/wifisting_beta - the path
-// is "/wifisting_beta/modules/", which does not contain "/wifisting/modules/"
-// because "wifisting" is followed by "_beta", not by "/modules/". So every
-// privileged module action prompted for a password, and because the scan then
-// ran as root it also wrote state/recon.json as root:0600, which the
-// unprivileged GUI could not read - the GUI showed "APs: 0" for a scan that
-// had actually worked.
+// HOW IT MATCHES
+// pkexec's "program" key is the first argument after pkexec, so callers must
+// use `pkexec /path/to/script.sh --verb` and never `pkexec env ...` - the key
+// would then be /usr/bin/env and nothing here would match. The GUI's action
+// runner does exactly that.
 //
-// This version matches any wifisting checkout under the operator's home,
-// whatever the directory is called, and is scoped to that home rather than to
-// any path that merely contains the string "wifisting".
+// A program is allowed when ALL of these hold:
+//   * it lives under the INVOKING user's home directory,
+//   * the checkout directory name starts with "wifisting"
+//     (wifisting, wifisting_beta, wifisting-1.2.0),
+//   * it sits in a modules/ directory,
+//   * it ends in ".sh".
+// That keeps a script parked in /tmp (which the old substring match allowed)
+// from being escalated, while still working for any user and any checkout.
 
 polkit.addRule(function(action, subject) {
     if (action.id !== "org.freedesktop.policykit.exec") return null;
@@ -30,18 +39,18 @@ polkit.addRule(function(action, subject) {
     var prog = action.lookup("program");
     if (!prog) return null;
 
-    // Any .sh under a modules/ directory of a wifisting checkout in $HOME.
-    // indexOf/charAt rather than EndsWith: polkit's JS engine does not
-    // reliably provide the ES6 string methods.
-    var homes = ["/home/ysl/wifisting/modules/",
-                 "/home/ysl/wifisting-beta/modules/",
-                 "/home/ysl/wifisting_beta/modules/"];
-    var ok = false;
-    for (var i = 0; i < homes.length; i++) {
-        if (prog.indexOf(homes[i]) === 0) { ok = true; break; }
-    }
-    if (!ok) return null;
+    // The invoking user's home, resolved at decision time.
+    var home = "/home/" + subject.user + "/";
+    if (prog.indexOf(home) !== 0) return null;
 
-    if (prog.substring(prog.length - 3) === ".sh") return polkit.Result.YES;
-    return null;
+    // Path below the home, e.g. "wifisting_beta/modules/02_recon.sh".
+    // indexOf rather than startsWith: polkit's JS engine does not reliably
+    // provide the ES6 string methods.
+    var rest = prog.substring(home.length);
+    if (rest.indexOf("wifisting") !== 0) return null;
+    if (rest.indexOf("/modules/") === -1) return null;
+
+    if (prog.substring(prog.length - 3) !== ".sh") return null;
+
+    return polkit.Result.YES;
 });
