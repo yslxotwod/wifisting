@@ -257,6 +257,12 @@ typedef struct {
     char *background_path;
     int dashboard_sort_mode; /* 0=workflow 1=frequency 2=category */
 
+    /* Module id whose favorite star was just toggled, so the next
+       dashboard_populate() can ping that one star and not every star on
+       the board. Borrowed pointer into the static module table, so there
+       is nothing to free; consumed and cleared by dashboard_populate(). */
+    const char *star_pop_id;
+
     /* How many times each module has been opened. Persisted so the sidebar
        can put the genuinely most-used modules first inside each category,
        and so the dashboard's "frequency" sort reflects real use instead of
@@ -2905,6 +2911,26 @@ append_event_quiet(AppState *state, const char *message)
     append_event_full(state, message, FALSE);
 }
 
+/* Drop the "new output" highlight from the whole event log. Removing the
+ * tag buffer-wide rather than from a saved range keeps this safe across
+ * edits: a stored GtkTextIter would be invalidated by the next append. */
+static gboolean
+evt_flash_clear(gpointer data)
+{
+    GtkTextBuffer *buf = data;
+    GtkTextTagTable *tt = gtk_text_buffer_get_tag_table(buf);
+    GtkTextTag *tag = tt ? gtk_text_tag_table_lookup(tt, "evt-new") : NULL;
+
+    if (tag != NULL) {
+        GtkTextIter start, end;
+        gtk_text_buffer_get_bounds(buf, &start, &end);
+        gtk_text_buffer_remove_tag(buf, tag, &start, &end);
+    }
+
+    g_object_unref(buf);
+    return G_SOURCE_REMOVE;
+}
+
 static void
 append_event_full(AppState *state, const char *message, gboolean allow_toast)
 {
@@ -2973,14 +2999,26 @@ append_event_full(AppState *state, const char *message, gboolean allow_toast)
             state->event_buffer);
         GtkTextTag *tag = tt ? gtk_text_tag_table_lookup(
             tt, event_sev_tag(ei->sev)) : NULL;
+        GtkTextTag *ntag = tt ? gtk_text_tag_table_lookup(
+            tt, "evt-new") : NULL;
 
         gtk_text_buffer_get_end_iter(state->event_buffer, &end);
-        if (tag != NULL) {
+        if (tag != NULL && ntag != NULL) {
+            gtk_text_buffer_insert_with_tags(
+                state->event_buffer, &end, ei->line, -1, tag, ntag, NULL);
+        } else if (tag != NULL) {
             gtk_text_buffer_insert_with_tags(
                 state->event_buffer, &end, ei->line, -1, tag, NULL);
         } else {
             gtk_text_buffer_insert(
                 state->event_buffer, &end, ei->line, -1);
+        }
+
+        /* Highlight the fresh line briefly, then take the highlight off
+           the whole log. Fires per line, so the most recent clear wins. */
+        if (ntag != NULL) {
+            g_timeout_add_full(G_PRIORITY_DEFAULT, 1200, evt_flash_clear,
+                               g_object_ref(state->event_buffer), NULL);
         }
 
         if (state->event_view != NULL) {
@@ -48611,7 +48649,12 @@ dashboard_tile_favorite_clicked(GtkButton *button, gpointer user_data)
     if (popover != NULL)
         gtk_popover_popdown(GTK_POPOVER(popover));
 
-    if (id != NULL) favorites_toggle(state, id);
+    if (id != NULL) {
+        /* favorites_toggle() repopulates the dashboard; flag the tile so
+           that rebuild pings this star and no other. */
+        state->star_pop_id = id;
+        favorites_toggle(state, id);
+    }
 }
 
 static void
@@ -48871,11 +48914,27 @@ dashboard_populate(AppState *state)
         gboolean is_fav = favorites_contains(state, mod->id);
 
         gtk_widget_add_css_class(button, "module-card");
+        /* Stagger the entrance in visual reading order. The class names
+           are the delays declared in style.css; only the first screenful
+           is staggered, the rest appear immediately so a long list does
+           not take a second to finish drawing in. */
+        if (i < 12) {
+            char in_cls[24];
+            g_snprintf(in_cls, sizeof in_cls, "tile-in-%u", i);
+            gtk_widget_add_css_class(button, in_cls);
+        }
         gtk_widget_add_css_class(card, "module-card-inner");
         gtk_widget_add_css_class(top_row, "module-card-toprow");
         gtk_widget_add_css_class(category, "module-card-category");
         gtk_widget_add_css_class(star, "module-card-star");
         if (is_fav) gtk_widget_add_css_class(star, "favorited");
+        /* Ping only the star that was just toggled. Every favorited star
+           carries .favorited forever, so animating that class would fire
+           on all of them at every repopulate; this fires once, on the
+           action, because populate consumes the id below. */
+        if (state->star_pop_id != NULL &&
+            g_strcmp0(state->star_pop_id, mod->id) == 0)
+            gtk_widget_add_css_class(star, "star-pop");
         gtk_widget_add_css_class(icon, "module-card-icon");
         gtk_widget_add_css_class(name, "module-card-title");
 
@@ -48951,6 +49010,10 @@ dashboard_populate(AppState *state)
         gtk_grid_attach(GTK_GRID(grid), button,
                         (int)(i % cols), (int)(i / cols), 1, 1);
     }
+
+    /* The star ping is a one-shot: consume it here whether or not a tile
+       matched, so it cannot fire again on the next repopulate. */
+    state->star_pop_id = NULL;
 
     /* Pin the grid's total size. GtkGrid's natural size isn't reported
        reliably inside a scrolled window, so we tell it explicitly. */
@@ -51389,6 +51452,14 @@ create_dashboard(AppState *state)
     gtk_widget_set_margin_start(grid, 4);
     gtk_widget_set_margin_end(grid, 4);
 
+    /* Let a hovered tile draw outside its cell. The tile grows 14px on
+       hover (see .module-card:hover) and its negative margin pulls that
+       back out of the grid footprint, but GTK still clips each child to
+       its parent's allocation - without this the 7px a grown tile adds
+       past the outer edges of the grid is sliced off and reads as a
+       rendering fault rather than an animation. */
+    gtk_widget_set_overflow(grid, GTK_OVERFLOW_VISIBLE);
+
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll),
         GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scroll), grid);
@@ -51612,6 +51683,12 @@ create_event_drawer(AppState *state)
         "foreground", "#ff526f", NULL);
     gtk_text_buffer_create_tag(buf, "evt-ok",
         "foreground", "#62e690", NULL);
+    /* Background-only tag used for the "new output" flash; the foreground
+       still comes from the severity tag applied alongside it. A neutral
+       slate reads on every theme, where a tinted highlight would only
+       work on one. */
+    gtk_text_buffer_create_tag(buf, "evt-new",
+        "background", "#333a47", NULL);
 
     gtk_scrolled_window_set_child(
         GTK_SCROLLED_WINDOW(scroll), view);
@@ -53247,6 +53324,44 @@ glitch_overlay_attach(GtkOverlay *overlay)
     return g->area;
 }
 
+/* GtkNotebook has no page transition, so a tab switch used to be an
+   instant swap. Flag the incoming page with .page-enter, which
+   style.css turns into a short crossfade; the class is dropped again
+   once the animation is done so switching back can re-trigger it. */
+static gboolean
+page_enter_clear(gpointer data)
+{
+    gtk_widget_remove_css_class(GTK_WIDGET(data), "page-enter");
+    g_object_unref(data);
+    return G_SOURCE_REMOVE;
+}
+
+static void
+notebook_page_switched(GtkNotebook *notebook,
+                       GtkWidget *page,
+                       guint page_num,
+                       gpointer user_data)
+{
+    int n = gtk_notebook_get_n_pages(notebook);
+    int i;
+
+    (void) page_num;
+    (void) user_data;
+
+    for (i = 0; i < n; i++) {
+        GtkWidget *p = gtk_notebook_get_nth_page(notebook, i);
+        if (p != NULL)
+            gtk_widget_remove_css_class(p, "page-enter");
+    }
+
+    if (page == NULL)
+        return;
+
+    gtk_widget_add_css_class(page, "page-enter");
+    g_timeout_add_full(G_PRIORITY_DEFAULT, 240, page_enter_clear,
+                       g_object_ref(page), NULL);
+}
+
 static void
 activate(GtkApplication *application, gpointer user_data)
 {
@@ -53369,6 +53484,8 @@ activate(GtkApplication *application, gpointer user_data)
             settings_get_module_data(state)),
         gtk_label_new("Settings"));
     gtk_notebook_set_scrollable(GTK_NOTEBOOK(state->notebook), TRUE);
+    g_signal_connect(state->notebook, "switch-page",
+                     G_CALLBACK(notebook_page_switched), NULL);
     gtk_widget_set_hexpand(state->notebook, TRUE);
     gtk_widget_set_vexpand(state->notebook, TRUE);
 

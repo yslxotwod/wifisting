@@ -159,29 +159,49 @@ button.flat {
     background: rgba(13, 15, 19, 0.75);
     border: 1px solid #30333b;
     border-radius: 7px;
+    opacity: 0.82;
 
     /* Declared on the base rule, not only on :hover. A transition set on
        :hover animates the way in and snaps back instantly on the way out,
        which reads as a glitch rather than an effect. */
     transition: background-color 140ms ease-out,
                 border-color     140ms ease-out,
-                box-shadow       140ms ease-out;
+                box-shadow       140ms ease-out,
+                opacity          140ms ease-out,
+                padding          140ms ease-out,
+                margin           140ms ease-out;
 }
 
-/* Hover: the card lifts toward the pointer.
+/* Hover: the card floats toward the pointer and the rest fade back.
  *
- * GTK CSS has no `transform`, so this cannot move the widget the way the
- * CSS-only demos on the web do - translateY is not available. A layered
- * box-shadow is the equivalent: a tight ring around the border plus a
- * soft drop beneath, both tinted with the same red as the border, which
- * reads as the card rising off the surface. The two are one rule because
- * a single shadow looks like a smudge.
+ * GTK CSS has no `transform`, so growing cannot be done with scale(), and
+ * the size is animated directly instead. Padding is the lever, not
+ * min-width/min-height: those are content-box, and the tile's content
+ * (the widest label) is already wider and taller than any minimum small
+ * enough to leave the dashboard layout alone - raising them on :hover
+ * moved nothing measurable. Padding sits outside the content box, so
+ * +7px a side always grows the border box by 14px, whatever the content
+ * measures and whichever theme set the base padding.
+ *
+ * The negative margin pulls exactly those 14px back out of the grid
+ * footprint, so the tile inflates over its neighbours in place. The
+ * margin must stay at half the growth: 14px of growth, -7px a side.
+ * Change one without the other and the grid drifts under the pointer.
+ *
+ * The padding transition goes on the base rule so the shrink animates
+ * too; declared only on :hover it animates in and snaps out.
+ *
+ * Themes set their own base padding further down this file, so each one
+ * needs a matching :hover rule at the very end - see "tile hover growth".
  */
 .module-card:hover {
     background: rgba(55, 7, 18, 0.95);
     border-color: #f0183d;
     box-shadow: 0 0 0 1px rgba(240, 24, 61, 0.45),
-                0 8px 20px rgba(240, 24, 61, 0.30);
+                0 14px 28px rgba(0, 0, 0, 0.55);
+    opacity: 1;
+    padding: 17px;
+    margin: -7px;
 }
 
 /* Pressed: settle back down. Without this a click fires the same effect
@@ -923,8 +943,38 @@ notebook > header tabs tab {
 
 /* ==== ambient animations ==== */
 
-/* pulsing status pill for running modules */
-.status-running { }
+/* Pulsing status pill for running modules. The class is set on every
+   running indicator (module headers, scanners, attackers), so one rule
+   here makes them all breathe. */
+@keyframes wf-breathe {
+    0%   { opacity: 1; }
+    50%  { opacity: 0.45; }
+    100% { opacity: 1; }
+}
+.status-running { animation: wf-breathe 1500ms ease-in-out infinite; }
+
+/* IDS severity reads as tempo: the worse the finding, the faster it
+   breathes. Colour alone was carrying this, and a screen of rows is
+   easy to stop seeing. Glow rather than opacity, so the text stays
+   readable while the row still pulls the eye. */
+@keyframes wf-alert-fast {
+    0%   { box-shadow: 0 0 0 0 rgba(255, 33, 71, 0.0); }
+    50%  { box-shadow: 0 0 10px 1px rgba(255, 33, 71, 0.60); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 33, 71, 0.0); }
+}
+@keyframes wf-alert-slow {
+    0%   { box-shadow: 0 0 0 0 rgba(255, 176, 32, 0.0); }
+    50%  { box-shadow: 0 0 8px 1px rgba(255, 176, 32, 0.50); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 176, 32, 0.0); }
+}
+.ids-alert-high { animation: wf-alert-fast 850ms ease-in-out infinite; }
+.ids-alert-med  { animation: wf-alert-slow 1900ms ease-in-out infinite; }
+
+/* Remote nodes: online breathes slowly, unknown is still waiting for a
+   heartbeat and blinks faster. Offline stays flat on purpose - something
+   that is gone should not keep drawing the eye. */
+.node-online  { animation: wf-breathe 2800ms ease-in-out infinite; }
+.node-unknown { animation: wf-breathe 1300ms ease-in-out infinite; }
 
 /* sidebar hover glow */
 .sidebar button {
@@ -1540,9 +1590,11 @@ textview.event-view > text,
 /* A class + element selector (.theme-x button) out-specifies the bare   */
 /* element rules above, so ordering does not matter.                     */
 /*                                                                       */
-/* GTK 4.14 supports no transition/animation/@keyframes: they parse and  */
-/* do nothing. Every rule here is static. Animated effects are drawn by  */
-/* the app, not by this file.                                            */
+/* GTK 4.14 has no transform - scale()/translate()/rotate() do not exist,*/
+/* so nothing here can move or grow a widget that way. Transitions,      */
+/* @keyframes and animation DO work on this version (verified against    */
+/* 4.14.5 with a colour probe), so the motion in this file is built from */
+/* colour, opacity, box-shadow and the additive padding/margin lever.    */
 /* ==================================================================== */
 
 /* ---------- Matrix Terminal ---------------------------------------- */
@@ -2283,4 +2335,117 @@ textview.event-view > text,
 .theme-terminal entry {
     border-radius: 0;
     border-left: 3px solid rgba(255, 176, 0, 0.30);
+}
+
+/* ====================================================================
+   tile hover growth.
+
+   .module-card:hover grows a tile 14px by raising its padding 7px a
+   side, and margin: -7px pulls that back so the grid footprint does not
+   change. The +7 is added to whatever padding the theme already set on
+   the tile, and the theme's own rule (`.theme-matrix button`,
+   `.theme-monero .module-card`, ...) would otherwise win on :hover, so
+   each one gets an explicit :hover padding here, after every theme
+   block, at a specificity that beats them.
+
+   These values are "that theme's base tile padding + 7" on each side.
+   If a theme's base padding changes, or a theme is added, update it
+   here too - a hover padding that is not exactly +7 a side makes the
+   margin mismatch the growth and the dashboard drifts under the
+   pointer. Themes that leave the base 10px alone need nothing here:
+   .module-card:hover already covers them.
+   ==================================================================== */
+
+.theme-matrix   .module-card:hover { padding: 12px 17px; }  /* 5px 10px  */
+.theme-ghost    .module-card:hover { padding: 13px 19px; }  /* 6px 12px  */
+.theme-monero   .module-card:hover { padding: 19px; }       /* 12px      */
+.theme-terminal .module-card:hover { padding: 17px 19px; }  /* 10px 12px */
+
+/* ====================================================================
+   Motion.
+
+   GTK 4.14 has no transform, so none of this may scale, slide or rotate
+   a widget. Everything below is colour, opacity, box-shadow or the
+   additive padding/margin lever - all of which animate, and all of which
+   keep a widget's footprint in the layout unchanged unless the rule says
+   otherwise. That constraint is why the entrance is a fade and the star
+   is a ring rather than a pop or a slide.
+   ==================================================================== */
+
+/* ---- dashboard tiles assemble instead of appearing ----
+
+   dashboard_populate() tags each tile .tile-in-<n> with its index, so
+   the stagger follows the visual reading order. fill-mode is backwards,
+   never forwards: forwards would pin opacity for the life of the widget
+   and the hover fade (0.82 -> 1) would stop working. */
+@keyframes wf-tile-in {
+    0%   { opacity: 0; }
+    100% { opacity: 0.82; }
+}
+.tile-in-0  { animation: wf-tile-in 260ms ease-out   0ms backwards; }
+.tile-in-1  { animation: wf-tile-in 260ms ease-out  30ms backwards; }
+.tile-in-2  { animation: wf-tile-in 260ms ease-out  60ms backwards; }
+.tile-in-3  { animation: wf-tile-in 260ms ease-out  90ms backwards; }
+.tile-in-4  { animation: wf-tile-in 260ms ease-out 120ms backwards; }
+.tile-in-5  { animation: wf-tile-in 260ms ease-out 150ms backwards; }
+.tile-in-6  { animation: wf-tile-in 260ms ease-out 180ms backwards; }
+.tile-in-7  { animation: wf-tile-in 260ms ease-out 210ms backwards; }
+.tile-in-8  { animation: wf-tile-in 260ms ease-out 240ms backwards; }
+.tile-in-9  { animation: wf-tile-in 260ms ease-out 270ms backwards; }
+.tile-in-10 { animation: wf-tile-in 260ms ease-out 300ms backwards; }
+.tile-in-11 { animation: wf-tile-in 260ms ease-out 330ms backwards; }
+
+/* ---- favorite star ping ----
+
+   Applied by dashboard_populate() only to the tile whose star was just
+   toggled, so it fires on the action and not on every repopulate. */
+@keyframes wf-star-pop {
+    0%   { box-shadow: 0 0 0 0 rgba(255, 214, 10, 0.75); }
+    100% { box-shadow: 0 0 0 12px rgba(255, 214, 10, 0); }
+}
+.star-pop { animation: wf-star-pop 450ms ease-out; }
+
+/* ---- notebook page crossfade ----
+
+   GtkNotebook has no page transition of its own (the module sub-pages
+   get a real slide because they are a GtkStack). This is the cheap
+   equivalent: notebook_page_switched() flags the incoming page. */
+@keyframes wf-page-in {
+    0%   { opacity: 0; }
+    100% { opacity: 1; }
+}
+.page-enter { animation: wf-page-in 190ms ease-out; }
+
+/* ---- theme switch crossfade ----
+
+   A theme is a class swap on the toplevel, which used to repaint the
+   whole window in one frame. These transitions make the colours glide
+   instead. Only `transition` is set here, so themes keep owning the
+   colours themselves - specificity does not enter into it, because no
+   theme block sets `transition` on these widgets. */
+window,
+.app-background,
+.sidebar,
+.sidebar button,
+.tab-button,
+.event-drawer,
+.panel,
+.section-card,
+.module-page,
+.stats-chart,
+entry {
+    transition: background-color 250ms ease,
+                color            250ms ease,
+                border-color     250ms ease,
+                box-shadow       250ms ease;
+}
+
+/* ---- panel lift ----
+
+   Buttons are deliberately not in this rule: every theme already gives
+   button:hover its own border + glow at higher specificity, and a
+   generic shadow here would either lose to them or fight them. Section
+   cards had no hover response at all, so they get one. */
+.section-card:hover {
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
 }
